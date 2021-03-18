@@ -5,7 +5,7 @@
 import pandas as pd
 import time
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, flash, redirect
 from flask_socketio import SocketIO, send, emit
 
 app = Flask(__name__,
@@ -17,6 +17,7 @@ app.config['SECRET_KEY'] = 'annexA'
 socketio = SocketIO(app)
 
 nav_list = ["Upload", "Analyze", "Process", "Export"]
+glo_csvfile = None
 
 def main():
     csv_df = pd.read_csv("./data/testset.csv")
@@ -29,13 +30,31 @@ def main():
         # url_obj = LiveUrl(url)
         # print(url_obj.url_str, get_rfprediction(url_obj), get_cnnprediction(url_obj))
 
+def check_file(file):
+    print(file.filename.split('.'))
+    if file.filename == "":
+        return False
+    elif file.filename.split('.')[-1].lower() != 'csv':
+        return False
+    else:
+        return True
+
 @app.route('/', methods=["GET", "POST"])
 def upload():
     if request.method == "GET":
         return render_template('upload.html', nav_list=nav_list, nav_index=0)
     else:
-        print(request.files)
-        return "Posted data!"
+        if 'csvfile' not in request.files:
+            flash('Upload failed!')
+            return redirect('/')
+        csvfile = request.files['csvfile']
+        if check_file(csvfile):
+            global glo_csvfile
+            glo_csvfile = csvfile
+            return redirect('/analyze')
+        else:
+            flash('Upload failed!')
+            return redirect('/')
 
 @app.route('/analyze', methods=["GET", "POST"])
 def analyze():

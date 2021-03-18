@@ -484,3 +484,9 @@ display: block;
   margin-top: 5px;
   font-size: 10px;
 }
+
+.flash-error {
+    background: lightpink;
+    opacity: 0.9;
+    border-left: 4px solid red;
+}
