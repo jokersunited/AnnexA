@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+{% include './includes/head.html' %}
+<body>
+
+<div class="container">
+<div id="modal-3" class="modal" data-modal-effect="slide-top">
+  <div class="modal-content">
+    <h2 class="fs-title">Score Index</h2>
+    <h3 class="fs-subtitle">Getting the most out of your data</h3>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce convallis consectetur ligula. Morbi dapibus tellus a ipsum sollicitudin aliquet. Phasellus id est lacus. Pellentesque a elementum velit, a tempor nulla. Mauris mauris lectus, tincidunt et purus rhoncus, eleifend convallis turpis. Nunc ullamcorper bibendum diam, vitae tempus dolor hendrerit iaculis. Phasellus tellus elit, feugiat vel mi et, euismod varius augue. Nulla a porttitor sapien. Donec vestibulum ac nisl sed bibendum. Praesent neque ipsum, commodo eget venenatis vel, tempus sit amet ante. Curabitur vel odio eget urna dapibus imperdiet sit amet eget felis. Vestibulum eros velit, posuere a metus eget, aliquam euismod purus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.</p>
+    <input type="button" class="modal-close" value="Got it!">
+  </div>
+</div>
+</div>
+
+<div class="steps">
+
+    {% include './includes/nav.html' %}
+  <!-- USER INFORMATION FIELD SET -->
+  <fieldset>
+
+    <h2 class="fs-title">Upload</h2>
+    <h3 class="fs-subtitle">Upload the CSV file for initial cleaning</h3>
+
+    <!-- Begin file upload area -->
+      <form enctype="multipart/form-data" action="/" method="post" id="csvupload">
+          <input type="file" name="csvfile">
+    <!-- End file upload area -->
+          <input type="submit" form="csvupload" value="Submit" class="next action-button" />
+<!--    <button type="submit" form="csvupload" class="next action-button" value="Submit" />-->
+    </form>
+
+  </fieldset>
+
+</div>
+</body>
+</html>

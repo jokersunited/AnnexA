@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="/js/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript" charset="utf-8">
+$(document).ready(function(){
+    var socket = io();
+        socket.on('connect', function() {
+            socket.emit('processing', {data: 'I\'m connected!'});
+        });
+        socket.on("message", data => {
+          $('.load').text(data);
+          console.log(data);
+        });
+    });
+
+</script>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <p class="load">None</p>
+</body>
+</html>

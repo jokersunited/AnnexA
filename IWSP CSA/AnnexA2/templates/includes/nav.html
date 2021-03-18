@@ -1,0 +1,14 @@
+  <div class="userstep">
+    <h1 style="font-size: 42pt;">Annex A</h1>
+        <ul id="progressbar">
+            {% for nav in nav_list %}
+            {% if nav_list[nav_index] == nav %}
+                <li class="active">{{nav}}</li>
+            {% elif loop.index <= nav_index %}
+                <li class ="finished">{{nav}}</li>
+            {% else %}
+                <li>{{nav}}</li>
+            {% endif %}
+            {% endfor %}
+      </ul>
+    </div>
