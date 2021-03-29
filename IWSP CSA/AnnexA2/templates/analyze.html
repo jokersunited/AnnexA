@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+{% include './includes/head.html' %}
+<body>
+
+<div class="container">
+<div id="modal-3" class="modal" data-modal-effect="slide-top">
+  <div class="modal-content">
+    <h2 class="fs-title">Score Index</h2>
+    <h3 class="fs-subtitle">Getting the most out of your data</h3>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce convallis consectetur ligula. Morbi dapibus tellus a ipsum sollicitudin aliquet. Phasellus id est lacus. Pellentesque a elementum velit, a tempor nulla. Mauris mauris lectus, tincidunt et purus rhoncus, eleifend convallis turpis. Nunc ullamcorper bibendum diam, vitae tempus dolor hendrerit iaculis. Phasellus tellus elit, feugiat vel mi et, euismod varius augue. Nulla a porttitor sapien. Donec vestibulum ac nisl sed bibendum. Praesent neque ipsum, commodo eget venenatis vel, tempus sit amet ante. Curabitur vel odio eget urna dapibus imperdiet sit amet eget felis. Vestibulum eros velit, posuere a metus eget, aliquam euismod purus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.</p>
+    <input type="button" class="modal-close" value="Got it!">
+  </div>
+</div>
+</div>
+
+<div class="steps">
+    {% include './includes/nav.html' %}
+
+  <!-- USER INFORMATION FIELD SET -->
+  <fieldset>
+      <div class="page-form">
+          {% include './includes/flash.html' %}
+    <h2 class="fs-title">Analyze</h2>
+    <h3 class="fs-subtitle">Determine if website is a valid phish</h3>
+<div class="proceeddiv">
+      <a href="#" class="proceedbtn btn-secondary btn-sm" style="margin-right:0px;">Proceed to Process</a>
+
+</div>
+
+    <!-- Begin file upload area -->
+      <div class="pagecontainer">
+          <div class="heading">
+              <div class="upperheading">
+                  <div class="dompage">
+                      <div>
+
+                      <button class="btn fa fa-eye view-collapse"></button>
+
+                    <span class="domp" style="margin-left:0px; text-align: left;">
+                      Domain {{domid}}/{{dom_count}}
+                  </span>
+
+                      </div>
+                      <div class="dom-nav">
+<!--                                        <a href="#">-->
+<!--                      <i class="fa fa-eye view-icon" title="Switch views"></i>-->
+<!--                  </a>-->
+
+                      {% for i in range(dom_count) %}
+                      {% if domid != i+1 %}
+                      <a href="{{i+1}}">
+                        <div class="view-icon">{{i+1}}</div>
+                      </a>
+                      {% else %}
+                        <div class="view-icon icon-selected">{{i+1}}</div>
+                      {% endif %}
+                      {% endfor %}
+
+                      </div>
+                  </div>
+
+
+          </div>
+<!--              <div class="analyzeform">-->
+<!--                  <form>-->
+<!--                      <label for="fname">First name:</label>-->
+<!--                      <input type="text" id="fname" name="fname"><br><br>-->
+<!--                      <label for="lname">Last name:</label>-->
+<!--                      <input type="text" id="lname" name="lname"><br><br>-->
+
+<!--                      <button value="Submit" class="btn btn-primary">Test!</button>-->
+<!--                  </form>-->
+<!--              </div>-->
+              {% if domain_dict[1].live.dns == false or domain_dict[1].live.access == false %}
+                {% include './includes/pagedown.html' %}
+              {% else %}
+                {% include './includes/pageup.html' %}
+                {% endif %}
+<!--              <button class="explanation btn btn-secondary modal-trigger" data-modal-id="modal-3">hi</button>-->
+
+<!--              <div class="navpage">-->
+<!--                                 {% if domid <= 1 %}-->
+<!--        <a href="{{domid + 1}}" class="navbtn btn btn-primary btn-sm" style="float: right;">Next</a>-->
+<!--        {% elif domid == dom_count %}-->
+<!--        <a href="{{domid - 1}}" class="navbtn btn btn-primary btn-sm">Previous</a>-->
+<!--        {% else %}-->
+<!--        <a href="{{domid - 1}}" class="navbtn btn btn-primary btn-sm">Previous</a>-->
+<!--        <a href="{{domid + 1}}" class="navbtn btn btn-primary btn-sm" style="float: right;">Next</a>-->
+<!--{% endif %}-->
+<!--              </div>-->
+
+      </div>
+      </div>
+
+
+  <!-- End file upload area -->
+    <div id="loader">
+      <div id="loadspinner"></div>
+      <p id="loadtext"></p>
+        <div class="progress">
+              <div class="progress-bar progress-bar-striped active" role="progressbar"
+              aria-valuenow="10" aria-valuemin="10" aria-valuemax="100" style="width:10%">
+                0%
+              </div>
+            </div>
+    </div>
+  </fieldset>
+
+
+</div>
+</body>
+</html>

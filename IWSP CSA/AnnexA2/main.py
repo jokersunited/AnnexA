@@ -1,12 +1,13 @@
-# from urlclass import *
-# from model import *
-
-#Delete later
+from urlclass import Url, LiveUrl
+from model import get_cnnprediction, get_rfprediction
+from utils import *
 import pandas as pd
+
 import time
 
-from flask import Flask, render_template, request, flash, redirect
-from flask_socketio import SocketIO, send, emit
+from functools import wraps
+from flask import Flask, render_template, request, flash, redirect, url_for
+from flask_socketio import SocketIO, send, emit, join_room
 
 app = Flask(__name__,
             static_url_path='',
@@ -14,64 +15,102 @@ app = Flask(__name__,
             template_folder='./templates')
 
 app.config['SECRET_KEY'] = 'annexA'
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode="threading")
 
 nav_list = ["Upload", "Analyze", "Process", "Export"]
 glo_csvfile = None
 
-def main():
-    csv_df = pd.read_csv("./data/testset.csv")
+phish_df = None
+cnc_df = None
+domain_dict = {}
+
+sock_id = None
+
+def send_log(msg):
+    socketio.send(msg)
+
+def clean_csv(csv_df):
+    global phish_df, cnc_df, domain_dict
+
+    domain_dict = {}
+
     cnc_df = csv_df[(csv_df['type'] == 'c&c')]
     phish_df = csv_df[(csv_df['type'] == 'phishing')]
+    for row in phish_df.itertuples():
+        url = clean_urlstr(row.url)
+        url = Url(url)
+        if row[6] not in domain_dict:
+            if row[6] == 'nan':
+                row[6] = "Undefined"
+            domain_dict.update({row[6]: Domain(row[6], row.ip, url)})
+        else:
+            domain_dict[row[6]].add_url(url)
+            domain_dict[row[6]].add_ip(row.ip)
 
-    for url in phish_df['url'].unique():
-        send(url)
-        time.sleep(0.5)
-        # url_obj = LiveUrl(url)
-        # print(url_obj.url_str, get_rfprediction(url_obj), get_cnnprediction(url_obj))
+    for index, value in enumerate(domain_dict.values()):
+        send_log({'text': 'Processing ' + str(value.domain), 'prog': int((index+1)/len(domain_dict.values())*100)})
+        value.url.sort(key=lambda x: len(x.url_str))
+        for url in value.url:
+            value.rf += get_rfprediction(url)
+            value.cnn += get_cnnprediction(url)
+        value.avg_res('rf')
+        value.avg_res('cnn')
+        send_log({'text': 'Curling ' + str(value.url[0].url_str)})
+        value.setlive(LiveUrl(value.url[0].url_str))
+    domain_dict = list(domain_dict.items())
+    print(domain_dict)
 
-def check_file(file):
-    print(file.filename.split('.'))
-    if file.filename == "":
-        return False
-    elif file.filename.split('.')[-1].lower() != 'csv':
-        return False
-    else:
-        return True
+
+def uploaded_file(f):
+    @wraps(f)
+    def upload_check(*args, **kwargs):
+        if glo_csvfile is None:
+            flash("Please upload a CSV file first!")
+            return redirect(url_for("upload"))
+        return f(*args, **kwargs)
+    return upload_check
 
 @app.route('/', methods=["GET", "POST"])
 def upload():
+    global glo_csvfile
     if request.method == "GET":
         return render_template('upload.html', nav_list=nav_list, nav_index=0)
     else:
         if 'csvfile' not in request.files:
             flash('Upload failed!')
-            return redirect('/')
+            return redirect(url_for("upload"))
         csvfile = request.files['csvfile']
         if check_file(csvfile):
-            global glo_csvfile
-            glo_csvfile = csvfile
-            return redirect('/analyze')
+            glo_csvfile = pd.read_csv(csvfile)
+            clean_csv(glo_csvfile)
+            return redirect(url_for("analyze", domid=1))
         else:
             flash('Upload failed!')
-            return redirect('/')
+            return redirect(url_for("upload"))
 
-@app.route('/analyze', methods=["GET", "POST"])
-def analyze():
-    if request.method == "GET":
-        return render_template('index.html', nav_list=nav_list, nav_index=1)
+@app.route('/analyze/<domid>', methods=["GET", "POST"])
+@uploaded_file
+def analyze(domid):
+    try:
+        if request.method == "GET" and int(domid) > 0:
+            return render_template('analyze.html', nav_list=nav_list, nav_index=1, domain_dict=domain_dict[int(domid)-1], dom_count=len(domain_dict), domid=int(domid))
+    except (IndexError, TypeError, ValueError) as e:
+        print(e)
+        flash("Invalid domain ID specified")
+        return redirect(url_for("upload"))
+
     else:
-        return "Posted data!"
+        flash("Invalid request received")
+        return redirect(url_for("upload"))
 
 @app.route('/process')
 def process():
     return render_template('index.html', nav_list=nav_list, nav_index=2)
 
-@socketio.on('processing')
-def process_csv(data):
-    main()
-    print('received message: ' + str(data))
-
+@socketio.on('connect')
+def sock_conn():
+    global sock_id
+    sock_id = request.sid
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)

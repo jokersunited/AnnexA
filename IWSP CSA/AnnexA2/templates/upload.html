@@ -8,18 +8,33 @@
 
   <!-- USER INFORMATION FIELD SET -->
   <fieldset>
-    {% include './includes/flash.html' %}
+      <div class="page-form">
+          {% include './includes/flash.html' %}
     <h2 class="fs-title">Upload</h2>
     <h3 class="fs-subtitle">Upload the CSV file for initial cleaning</h3>
 
     <!-- Begin file upload area -->
+          <div class="pagecontainer">
       <form enctype="multipart/form-data" action="/" method="post" id="csvupload">
           <input type="file" name="csvfile">
           <input type="submit" form="csvupload" value="Submit" class="next action-button" />
         </form>
+      </div>
+      </div>
   <!-- End file upload area -->
+    <div id="loader">
+      <div id="loadspinner"></div>
+      <p id="loadtext"></p>
+        <div class="progress">
+              <div class="progress-bar progress-bar-striped active" role="progressbar"
+              aria-valuenow="10" aria-valuemin="10" aria-valuemax="100" style="width:10%">
+                0%
+              </div>
+            </div>
+    </div>
 
   </fieldset>
+
 
 </div>
 </body>

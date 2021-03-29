@@ -1,0 +1,49 @@
+<h2>{{domain_dict[0]}}</h2>
+
+<h3 class="fs-subtitle">
+    {% for ip in domain_dict[1].ip %}
+    - {{ip}} <br>
+    {% endfor %}
+</h3>
+
+<h3 class="page-title" style="color: red; font-weight: bold;">Domain is down</h3>
+</div>
+
+<h4>AI Predictions on URL Strings</h4>
+ <table class="results-table table table-bordered">
+              <tbody>
+     {% if domain_dict[1].rf <= 50 %}
+              <tr>
+                  <td scope="row">RF Model Prediction</td>
+                  <td>{{domain_dict[1].rf}}%</td>
+              </tr>
+{% else %}
+              <tr class="table-danger">
+                  <td scope="row">RF Model Prediction</td>
+                  <td style="color: red">{{domain_dict[1].rf}}%</td>
+              </tr>
+{% endif %}
+{% if domain_dict[1].cnn <= 50 %}
+              <tr>
+                  <td scope="row">CNN Model Prediction</td>
+                  <td>{{domain_dict[1].cnn}}%</td>
+              </tr>
+{% else %}
+              <tr class="table-danger">
+                  <td scope="row">CNN Model Prediction</td>
+                  <td style="color: red">{{domain_dict[1].cnn}}%</td>
+              </tr>
+{% endif %}
+              <tr>
+                  <td scope="row">Urls</td>
+                  <td>
+                          {% for url in domain_dict[1].url %}
+                          <a href="{{url.url_str}}">- {{url.url_str}}</a><br>
+                          {% endfor %}
+                      </ul>
+                  </td>
+    <!--                  <td>{{domain_dict[1].ip}}</td>-->
+    <!--                  <td>{{domain_dict[1].rf}}</td>-->
+                </tr>
+                   </tbody>
+            </table>

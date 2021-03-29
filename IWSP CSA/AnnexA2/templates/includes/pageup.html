@@ -1,0 +1,150 @@
+<img class='screenshot' src="{{domain_dict[1].live.screenshot}}" />
+            <h2>{{domain_dict[0]}}</h2>
+            <h3 class="fs-subtitle">
+                {% for ip in domain_dict[1].ip %}
+                - {{ip}} <br>
+                {% endfor %}
+            </h3>
+
+          </div>
+
+<div class="row">
+
+    <div class="col-sm-6">
+          <table class="results-table table table-bordered table-striped">
+              <thead>
+               <tr>
+                  <td colspan="2"><h4>Page Information</h4></td>
+              </tr>
+              </thead>
+              <tbody>
+
+              <tr>
+                  <td class="row-head">Page Title</td>
+                  <td>{{domain_dict[1].live.title}}</td>
+              </tr>
+            {% if domain_dict[1].live.resp_code[0] >= 300 %}
+               <tr class="badrow">
+                   {% else %}
+                   <tr>
+                {% endif %}
+                  <td class="row-head">Response Code</td>
+                  <td>{{domain_dict[1].live.resp_code[0]}}</td>
+              </tr>
+
+              </tbody>
+          </table>
+</div>
+
+
+    <div class="col-sm-6">
+
+        <table class="results-table table table-bordered table-striped">
+            <thead>
+                        <tr>
+                          <td colspan="2"><h4>AI Predictions on URL Strings</h4></td>
+                      </tr>
+            </thead>
+                      <tbody>
+
+        {% if domain_dict[1].rf <= 50 %}
+                      <tr>
+                          {% else %}
+                           <tr class="badrow">
+            {% endif %}
+                          <td class="row-head">RF Model Prediction</td>
+                          <td>{{domain_dict[1].rf}}%</td>
+                      </tr>
+
+        {% if domain_dict[1].cnn <= 50 %}
+                      <tr>
+        {% else %}
+                      <tr class="badrow">
+            {% endif %}
+                          <td class="row-head">CNN Model Prediction</td>
+                          <td>{{domain_dict[1].cnn}}%</td>
+                      </tr>
+                  </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-6">
+        <table class="results-table table table-bordered table-striped">
+            <thead>
+            <tr>
+                      <td colspan="2"><h4>Cert Information</h4></td>
+                  </tr>
+            </thead>
+            <tbody>
+                      {% if domain_dict[1].live.cert != none %}
+                <tr>
+                    <td class="row-head">Issuer</td>
+                    <td>{{domain_dict[1].live.get_certissuer()}}</td>
+                </tr>
+              {% if domain_dict[1].live.get_certocsp() == "GOOD" %}
+
+              <tr>
+                      {% else %}
+              <tr class="badrow">
+                          {% endif %}
+                    <td class="row-head">OCSP Validity</td>
+                    <td>{{domain_dict[1].live.get_certocsp()}}</td>
+                </tr>
+
+    {% if domain_dict[1].live.get_expiry() == "Yes" %}
+                      <tr class="badrow">
+                          {% else %}
+                      <tr>
+                      {% endif %}
+                      <td class="row-head">Expired?</td>
+                      <td>{{domain_dict[1].live.get_expiry()}}</td>
+                  </tr>
+
+
+
+                      {% else %}
+                  <tr class="badrow">
+                      <td colspan="2">No certificate information!</td>
+                  </tr>
+                      {% endif %}
+
+
+            </tbody>
+        </table>
+    </div>
+    <div class="col-sm-6">
+        <table class="results-table table table-bordered table-striped">
+            <thead>
+             <tr>
+                      <td colspan="2"><h4>Domain Information</h4></td>
+                  </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td class="row-head">Registrar</td>
+                    <td>{{domain_dict[1].live.whois.registrar}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<h4>URLs</h4>
+          <table class="results-table table table-bordered">
+
+              <tbody>
+                <tr>
+                  <td>
+                          {% for url in domain_dict[1].url %}
+                          <a href="{{url.url_str}}">- {{url.url_str}}</a><br>
+                          {% endfor %}
+                      </ul>
+                  </td>
+    <!--                  <td>{{domain_dict[1].ip}}</td>-->
+    <!--                  <td>{{domain_dict[1].rf}}</td>-->
+                </tr>
+              </tbody>
+            </table>

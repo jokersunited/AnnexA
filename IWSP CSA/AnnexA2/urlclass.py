@@ -9,6 +9,7 @@ import pandas as pd
 from datetime import datetime
 
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 
@@ -33,6 +34,7 @@ def get_status(logs):
                     [d['message']['params']['response']['status'], d['message']['params']['response']['url'],
                      d['message']['params']['type']])
     return statuses
+
 
 ############## Initialise Selenium ##############
 
@@ -67,7 +69,7 @@ class Url:
         :param url: String representation of URL
         :param tag: Label if it is phishing or not, None if unknown
         """
-        self.url_str = url.replace("hxxp", "http")
+        self.url_str = url
         self.urlparse = urlparse(url)
         self.domaininfo = tldextract.extract(self.url_str)
 
@@ -229,20 +231,29 @@ class LiveUrl(Url):
         self.uniq_dom = None
         self.link_count = 0
         self.spoof = {}
+        self.access = False
 
         if self.dns is True:
-            self.driver = self.init_driver(capabilities)
-            self.final_url = self.driver.current_url
+            try:
+                self.driver = self.init_driver(capabilities)
+                self.access = True
+                self.final_url = self.driver.current_url
+                self.title = self.driver.title
+                self.resp_code = self.get_respcode()
 
-            self.screenshot = self.get_64snapshot()
-            self.whois = whois.whois(self.url_str)
-            if self.urlparse.scheme == 'https':
-                self.cert = self.get_cert()
-            else:
-                self.cert = None
+                self.screenshot = self.get_64snapshot()
+                self.whois = whois.whois(self.url_str)
+                if self.urlparse.scheme == 'https':
+                    self.cert = self.get_cert()
+                else:
+                    self.cert = None
 
-            self.get_links_uniqdom()
-            self.print_cmdreport()
+                self.get_links_uniqdom()
+                # self.print_cmdreport()
+
+            except WebDriverException:
+                return
+
 
             self.driver.quit()
 
@@ -319,6 +330,20 @@ class LiveUrl(Url):
             return False
         else:
             return True
+
+    def get_certocsp(self):
+        ocsp_request = ocspchecker.get_ocsp_status(self.final_url)
+        ocsp_status = [i for i in ocsp_request if "OCSP Status:" in i][0]
+        return str(ocsp_status.split(":")[1][1:])
+
+    def get_certissuer(self):
+        return str(self.cert.get_issuer().CN) + " " + str(self.cert.get_issuer().O)
+
+    def get_expiry(self):
+        return "Yes" if self.cert.has_expired() else "No"
+
+    def get_respcode(self):
+        return get_status(self.driver.get_log('performance'))[0]
 
     def get_64snapshot(self):
         ss = self.driver.get_screenshot_as_base64()
@@ -410,6 +435,7 @@ class LiveUrl(Url):
 # new_benign = LiveUrl("https://acc-recover-police.langsung-barbar.xyz/", 0)
 # new_benign = LiveUrl("https://www.linechecks.info/", 0)
 # new_benign = LiveUrl("https://www.puffsandpeaks.com", 0)
+# new_benign.print_cmdreport()
 # new_benign = LiveUrl("https://revoked.badssl.com/", 0)
 # print(new_phish.get_dates(key='creation'))
 # print(new_phish.get_dates(key='expiration'))

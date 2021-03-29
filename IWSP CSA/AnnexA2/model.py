@@ -1,6 +1,15 @@
 import tensorflow as tf
 import keras
 import pickle
+#
+# from urlclass import Url
+
+physical_devices = tf.config.list_physical_devices('GPU')
+try:
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+except:
+  # Invalid device or cannot modify virtual devices once initialized.
+    pass
 
 # Load and initialise the RandomForest model
 with open('./data/rfmodel.pickle', 'rb') as f:
@@ -73,3 +82,6 @@ def get_cnnprediction(url):
     """
     char_X = tf.constant([get_encoding_proto(url.url_str, 200)])
     return float(model_char(char_X)[0][1])*100
+
+#
+# print(get_cnnprediction(Url("https://google.com")))
