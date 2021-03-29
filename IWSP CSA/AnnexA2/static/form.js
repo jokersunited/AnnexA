@@ -30,7 +30,7 @@ $(document).ready(function() {
             navcheck = true;
         }
         else {
-            $(".dom-nav").css("display", "inline-flex");
+            $(".dom-nav").css("display", "inline-block");
             navcheck = false;
         }
 

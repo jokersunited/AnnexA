@@ -46,17 +46,19 @@
 <!--                                        <a href="#">-->
 <!--                      <i class="fa fa-eye view-icon" title="Switch views"></i>-->
 <!--                  </a>-->
-
                       {% for i in range(dom_count) %}
                       {% if domid != i+1 %}
+
                       <a href="{{i+1}}">
                         <div class="view-icon">
                             <p>{{i+1}}</p>
+
                       {% else %}
                           <a>
                               <div class="view-icon icon-selected">
                                   {{i+1}}
                       {% endif %}
+
                                   {% if domain_dictfull[i][1].processed %}
 
                                   <i class="fa fa-check" aria-hidden="true"></i>
@@ -64,6 +66,7 @@
                                 <i class="fa fa fa-warning" style="color: red; opacity:0.7;" aria-hidden="true"></i>
 
                                   {% endif %}
+
                               </div>
                           </a>
 

@@ -40,9 +40,10 @@ def clean_csv(csv_df):
         url = clean_urlstr(row.url)
         url = Url(url)
         if row[6] not in domain_dict:
-            if row[6] == 'nan':
-                row[6] = "Undefined"
-            domain_dict.update({row[6]: Domain(row[6], row.ip, url)})
+            if type(row[6]) is float:
+                domain_dict.update({url.get_domain(): Domain(url.get_domain(), row.ip, url)})
+            else:
+                domain_dict.update({row[6]: Domain(row[6], row.ip, url)})
         else:
             domain_dict[row[6]].add_url(url)
             domain_dict[row[6]].add_ip(row.ip)
@@ -106,6 +107,7 @@ def analyze(domid):
             return redirect(url_for("analyze", domid=domid))
     except (IndexError, TypeError, ValueError) as e:
         print(e)
+        raise e
         flash("Invalid domain ID specified", 'error')
         return redirect(url_for("upload"))
 

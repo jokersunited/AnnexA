@@ -46,7 +46,7 @@ class Domain:
 
 
     def add_url(self, url):
-        if url in [u.url_str for u in self.url]:
+        if url.url_str in [u.url_str for u in self.url]:
             return
         else:
             self.url.append(url)

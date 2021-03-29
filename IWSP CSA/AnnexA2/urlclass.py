@@ -249,6 +249,7 @@ class LiveUrl(Url):
                     self.cert = None
 
                 self.get_links_uniqdom()
+                self.requests = self.get_totalrequests()
                 # self.print_cmdreport()
 
             except WebDriverException:
@@ -331,6 +332,15 @@ class LiveUrl(Url):
         else:
             return True
 
+    def get_totalrequests(self):
+        endlist = []
+        print(get_status(self.driver.get_log('performance')))
+        for index, item in enumerate(get_status(self.driver.get_log('performance'))):
+            print("Request " + str(index + 1) + ": " + str(item[0]) + ', ' + item[2] + ', ' + item[1])
+            endlist.append([str(index + 1), str(item[0]), item[2], item[1]])
+
+        return endlist
+
     def first_email(self):
         print(self.whois.emails)
         print(type(self.whois.emails))
@@ -350,8 +360,22 @@ class LiveUrl(Url):
 
     def get_certocsp(self):
         ocsp_request = ocspchecker.get_ocsp_status(self.final_url)
-        ocsp_status = [i for i in ocsp_request if "OCSP Status:" in i][0]
-        return str(ocsp_status.split(":")[1][1:])
+
+        print(ocsp_request)
+        ocsp_status = [i for i in ocsp_request if "OCSP Status:" in i]
+        ocsp_error = [i for i in ocsp_request if "OCSP Request Error:" in i]
+
+        print(ocsp_status)
+        print(ocsp_error)
+
+        if len(ocsp_status) != 0:
+            return str(ocsp_status[0].split(":")[1][1:])
+        elif len(ocsp_error) != 0:
+            return str(ocsp_error[0].split(":")[2][1:])
+        else:
+            return "ERROR"
+
+
 
     def get_certissuer(self):
         return str(self.cert.get_issuer().CN) + " " + str(self.cert.get_issuer().O)
