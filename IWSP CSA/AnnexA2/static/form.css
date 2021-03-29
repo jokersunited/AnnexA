@@ -16,6 +16,11 @@ body {
     font-weight: bold;
 }
 
+.submit-btn {
+    width: 20px !important;
+    margin-left: 80%;
+}
+
 .results-table td a {
     word-break: break-all;
 }

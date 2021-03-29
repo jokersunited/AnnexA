@@ -57,6 +57,11 @@ def clean_csv(csv_df):
         value.avg_res('cnn')
         send_log({'text': 'Curling ' + str(value.url[0].url_str)})
         value.setlive(LiveUrl(value.url[0].url_str))
+
+        if not (value.live.access is False or value.live.dns is False):
+            value.abuse = value.live.first_email()
+            value.spoof = value.live.get_spoofed()
+
     domain_dict = list(domain_dict.items())
     print(domain_dict)
 
@@ -111,6 +116,7 @@ def analyze(domid):
 @app.route('/recurl/<domid>', methods=["GET"])
 @uploaded_file
 def recurl(domid):
+    send_log({'text': 'Re-analyzing - ' + request.args['url']})
     domain_dict[int(domid) - 1][1].live = LiveUrl(request.args['url'])
     return redirect(url_for("analyze", domid=domid))
 

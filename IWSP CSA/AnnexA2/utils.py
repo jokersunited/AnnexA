@@ -41,6 +41,10 @@ class Domain:
 
         self.processed = False
 
+        self.abuse = None
+        self.spoof = None
+
+
     def add_url(self, url):
         if url in [u.url_str for u in self.url]:
             return

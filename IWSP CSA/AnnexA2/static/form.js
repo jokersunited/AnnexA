@@ -13,9 +13,6 @@ $(document).ready(function() {
 
     var socket = io.connect();
     socket.on("message", data => {
-    console.log(data)
-    console.log(data.text)
-    console.log(data.prog)
     $("#loadtext").text(data.text);
     if (data.prog){
         $('.progress-bar').text(data.prog + "%")
@@ -40,6 +37,11 @@ $(document).ready(function() {
     });
 
     $(".next").click(function() {
+        $(".page-form").css("display", "none")
+        $("#loader").css("display", "block")
+    });
+
+    $(".recurl>a").click(function() {
         $(".page-form").css("display", "none")
         $("#loader").css("display", "block")
     });

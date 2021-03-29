@@ -58,7 +58,11 @@
                                   {{i+1}}
                       {% endif %}
                                   {% if domain_dictfull[i][1].processed %}
+
                                   <i class="fa fa-check" aria-hidden="true"></i>
+                                  {% elif domain_dictfull[i][1].live.dns == false or domain_dictfull[i][1].live.access == false %}
+                                <i class="fa fa fa-warning" style="color: red; opacity:0.7;" aria-hidden="true"></i>
+
                                   {% endif %}
                               </div>
                           </a>
@@ -110,12 +114,6 @@
     <div id="loader">
       <div id="loadspinner"></div>
       <p id="loadtext"></p>
-        <div class="progress">
-              <div class="progress-bar progress-bar-striped active" role="progressbar"
-              aria-valuenow="10" aria-valuemin="10" aria-valuemax="100" style="width:10%">
-                0%
-              </div>
-            </div>
     </div>
   </fieldset>
 

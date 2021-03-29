@@ -10,10 +10,10 @@
 
 <form class="analysis-form" enctype="multipart/form-data" action="{{dom_id}}" method="post">
     <label for="abuse">Abuse Email:</label>
-    <input type="text" value="{{domain_dict[1].live.first_email()}}">
+    <input type="text" value="{{domain_dict[1].abuse}}">
     <label for="target">Target Site:</label>
-    <input type="text" value="{{domain_dict[1].live.get_spoofed()}}">
-  <input type="submit" value="Submit">
+    <input type="text" value="{{domain_dict[1].spoof}}">
+  <input class="btn btn-primary" style="margin-left: 80%; width: 20% !important; color: white;" type="submit" value="Submit">
 </form>
 
 <div class="row">
@@ -140,16 +140,22 @@
     </div>
 </div>
 
-<h4>URLs</h4>
+<h4>URLs (Click to analyze specific URL)</h4>
           <table class="results-table table table-bordered">
 
               <tbody>
                 <tr>
                   <td>
                           {% for url in domain_dict[1].url %}
-                          <a href="{{url.url_str}}">- {{url.url_str}}</a><br>
+                      {% if url.url_str == domain_dict[1].live.url_str %}
+                      <div>- {{url.url_str}} <b>(Current Page)</b></div>
+                      {% else %}
+                      <div class="recurl">
+                          <a href="/recurl/{{domid}}?url={{url.url_str}}">- {{url.url_str}}</a><br>
+                      </div>
+                      {% endif %}
+
                           {% endfor %}
-                      </ul>
                   </td>
     <!--                  <td>{{domain_dict[1].ip}}</td>-->
     <!--                  <td>{{domain_dict[1].rf}}</td>-->
