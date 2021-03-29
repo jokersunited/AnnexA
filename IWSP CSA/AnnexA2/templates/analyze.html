@@ -24,8 +24,8 @@
     <h2 class="fs-title">Analyze</h2>
     <h3 class="fs-subtitle">Determine if website is a valid phish</h3>
 <div class="proceeddiv">
-      <a href="#" class="proceedbtn btn-secondary btn-sm" style="margin-right:0px;">Proceed to Process</a>
-
+    <a href="/" class="proceedbtn btn-secondary btn-sm" style="float:left;margin-left: 11%;">Re-upload CSV</a>
+      <a href="#" class="proceedbtn btn-secondary btn-sm" style="margin-right:0px;">Proceed to Consolidate</a>
 </div>
 
     <!-- Begin file upload area -->
@@ -35,7 +35,7 @@
                   <div class="dompage">
                       <div>
 
-                      <button class="btn fa fa-eye view-collapse"></button>
+                      <button style="outline: none;" class="btn fa fa-eye view-collapse"></button>
 
                     <span class="domp" style="margin-left:0px; text-align: left;">
                       Domain {{domid}}/{{dom_count}}
@@ -50,11 +50,20 @@
                       {% for i in range(dom_count) %}
                       {% if domid != i+1 %}
                       <a href="{{i+1}}">
-                        <div class="view-icon">{{i+1}}</div>
-                      </a>
+                        <div class="view-icon">
+                            <p>{{i+1}}</p>
                       {% else %}
-                        <div class="view-icon icon-selected">{{i+1}}</div>
+                          <a>
+                              <div class="view-icon icon-selected">
+                                  {{i+1}}
                       {% endif %}
+                                  {% if domain_dictfull[i][1].processed %}
+                                  <i class="fa fa-check" aria-hidden="true"></i>
+                                  {% endif %}
+                              </div>
+                          </a>
+
+
                       {% endfor %}
 
                       </div>
@@ -62,6 +71,9 @@
 
 
           </div>
+<!--                  {% if domain_dict[1].processed %}-->
+<!--                  <h1 style="margin-bottom: 25px; color:gray;">COMPLETED</h1>-->
+<!--                  {% endif %}-->
 <!--              <div class="analyzeform">-->
 <!--                  <form>-->
 <!--                      <label for="fname">First name:</label>-->

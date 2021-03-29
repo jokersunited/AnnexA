@@ -331,6 +331,23 @@ class LiveUrl(Url):
         else:
             return True
 
+    def first_email(self):
+        print(self.whois.emails)
+        print(type(self.whois.emails))
+        if type(self.whois.emails) is list:
+            return self.whois.emails[0]
+        else:
+            return self.whois.emails
+
+    def get_spoofed(self):
+        return_str = ""
+        for key, value in self.spoof.items():
+            if value > 0.4: return_str += key
+        if return_str == "":
+            return "None"
+        else:
+            return return_str
+
     def get_certocsp(self):
         ocsp_request = ocspchecker.get_ocsp_status(self.final_url)
         ocsp_status = [i for i in ocsp_request if "OCSP Status:" in i][0]

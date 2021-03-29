@@ -39,6 +39,8 @@ class Domain:
         self.rf = 0
         self.live = None
 
+        self.processed = False
+
     def add_url(self, url):
         if url in [u.url_str for u in self.url]:
             return

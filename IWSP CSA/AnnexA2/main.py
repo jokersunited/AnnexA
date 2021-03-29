@@ -17,7 +17,7 @@ app = Flask(__name__,
 app.config['SECRET_KEY'] = 'annexA'
 socketio = SocketIO(app, async_mode="threading")
 
-nav_list = ["Upload", "Analyze", "Process", "Export"]
+nav_list = ["Upload", "Analyze", "Consolidate", "Export"]
 glo_csvfile = None
 
 phish_df = None
@@ -65,7 +65,7 @@ def uploaded_file(f):
     @wraps(f)
     def upload_check(*args, **kwargs):
         if glo_csvfile is None:
-            flash("Please upload a CSV file first!")
+            flash("Please upload a CSV file first!", 'error')
             return redirect(url_for("upload"))
         return f(*args, **kwargs)
     return upload_check
@@ -77,7 +77,7 @@ def upload():
         return render_template('upload.html', nav_list=nav_list, nav_index=0)
     else:
         if 'csvfile' not in request.files:
-            flash('Upload failed!')
+            flash('Upload failed!', 'error')
             return redirect(url_for("upload"))
         csvfile = request.files['csvfile']
         if check_file(csvfile):
@@ -85,23 +85,34 @@ def upload():
             clean_csv(glo_csvfile)
             return redirect(url_for("analyze", domid=1))
         else:
-            flash('Upload failed!')
+            flash('Upload failed!', 'error')
             return redirect(url_for("upload"))
 
 @app.route('/analyze/<domid>', methods=["GET", "POST"])
 @uploaded_file
 def analyze(domid):
+    print(request.method)
     try:
         if request.method == "GET" and int(domid) > 0:
-            return render_template('analyze.html', nav_list=nav_list, nav_index=1, domain_dict=domain_dict[int(domid)-1], dom_count=len(domain_dict), domid=int(domid))
+            return render_template('analyze.html', nav_list=nav_list, nav_index=1, domain_dictfull=domain_dict, domain_dict=domain_dict[int(domid)-1], dom_count=len(domain_dict), domid=int(domid))
+        elif request.method == "POST" and int(domid) > 0:
+            domain_dict[int(domid)-1][1].processed = True
+            flash("Succesfully Updated!", 'success')
+            return redirect(url_for("analyze", domid=domid))
     except (IndexError, TypeError, ValueError) as e:
         print(e)
-        flash("Invalid domain ID specified")
+        flash("Invalid domain ID specified", 'error')
         return redirect(url_for("upload"))
 
     else:
-        flash("Invalid request received")
+        flash("Invalid request received", 'error')
         return redirect(url_for("upload"))
+
+@app.route('/recurl/<domid>', methods=["GET"])
+@uploaded_file
+def recurl(domid):
+    domain_dict[int(domid) - 1][1].live = LiveUrl(request.args['url'])
+    return redirect(url_for("analyze", domid=domid))
 
 @app.route('/process')
 def process():

@@ -421,6 +421,14 @@ background: #e9e9e9;
   transform: translateY(0);
 }
 
+.analysis-form {
+    width: 75%;
+    margin: auto;
+    border: 1px solid rgba(0, 0, 0, .5);
+    padding: 25px;
+    margin-bottom: 25px;
+}
+
 
 /* RESPONSIVE */
 
@@ -571,6 +579,17 @@ background: #e9e9e9;
     opacity: 0.9;
     border-left: 4px solid red;
 }
+
+.flash-success {
+    width: 85%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 25px;
+    background: #98FB98;
+    opacity: 0.9;
+    border-left: 4px solid green;
+}
+
 .progress {
     width: 60%;
     margin: 20px auto;
@@ -623,8 +642,12 @@ background: #e9e9e9;
     margin: auto;
 }
 
+.view-icon p {
+    margin-bottom: 0px;
+}
+
 .dom-nav {
-    display: none;
+    display: inline-flex;
 }
 
 .dompage {

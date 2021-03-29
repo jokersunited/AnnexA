@@ -25,7 +25,7 @@ $(document).ready(function() {
     }
 
     });
-    var navcheck = true;
+    var navcheck = false;
     $(".view-collapse").click(function(){
 
         if(!navcheck){
@@ -33,7 +33,7 @@ $(document).ready(function() {
             navcheck = true;
         }
         else {
-            $(".dom-nav").css("display", "block");
+            $(".dom-nav").css("display", "inline-flex");
             navcheck = false;
         }
 

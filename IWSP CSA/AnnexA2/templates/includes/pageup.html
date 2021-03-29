@@ -8,6 +8,14 @@
 
           </div>
 
+<form class="analysis-form" enctype="multipart/form-data" action="{{dom_id}}" method="post">
+    <label for="abuse">Abuse Email:</label>
+    <input type="text" value="{{domain_dict[1].live.first_email()}}">
+    <label for="target">Target Site:</label>
+    <input type="text" value="{{domain_dict[1].live.get_spoofed()}}">
+  <input type="submit" value="Submit">
+</form>
+
 <div class="row">
 
     <div class="col-sm-6">
