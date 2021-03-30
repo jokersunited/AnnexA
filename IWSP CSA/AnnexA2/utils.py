@@ -1,5 +1,5 @@
-from flask_socketio import SocketIO, send, emit
-import time
+from random import randint
+from datetime import datetime
 
 """
 This python file includes utility methods to aid the program flow. Data processing/cleaning are some examples
@@ -40,10 +40,41 @@ class Domain:
         self.live = None
 
         self.processed = False
+        self.discard = False
 
         self.abuse = None
         self.spoof = None
 
+    def output(self):
+        out_list = []
+        cn = ["CaseID", "Abuse Email", "IPAddress", "Domain", "Target", "URL", "Status"]
+
+        case_id = "SingCERT_" + datetime.today().strftime('%Y%m%d') + "-A" + str(randint(100000,999999))
+
+        for url in self.url:
+            out_dict = {}
+            out_dict.update({cn[0]: case_id})
+            out_dict.update({cn[1]: self.live.first_email()})
+            out_dict.update({cn[2]: self.ip[0]})
+            out_dict.update({cn[3]: self.domain})
+            out_dict.update({cn[4]: self.spoof})
+            out_dict.update({cn[5]: url.url_str})
+            out_dict.update({cn[6]: "Active"})
+            out_list.append(out_dict)
+
+        return out_list
+
+    def check_benign(self):
+        if self.cnn > 50:
+            return False
+        elif self.rf > 50:
+            return False
+        elif self.live.cert is None:
+            return False
+        elif self.live.ocsp != "GOOD":
+            return False
+        else:
+            return True
 
     def add_url(self, url):
         if url.url_str in [u.url_str for u in self.url]:

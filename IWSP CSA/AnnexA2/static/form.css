@@ -11,6 +11,16 @@ body {
   overflow-x: hidden;
 }
 
+.modalnav-div {
+    display:inline-flex;
+    margin-top:25px;
+}
+
+.modal-btn {
+    width: 40%;
+    margin: auto;
+}
+
 .badrow {
     color: red;
     font-weight: bold;
@@ -61,6 +71,20 @@ body {
     text-align: center;
 }
 
+#show-redirect {
+    color: #007bff;
+    font-size:small;
+    font-weight: normal;
+    text-decoration: underline;
+}
+
+#show-redirect:hover {
+    cursor: pointer;
+}
+
+.redirects>tbody {
+    display: none;
+}
 
 .view-icon {
     border-radius: 15px 15px 15px 15px;
@@ -427,6 +451,7 @@ background: #e9e9e9;
 }
 
 .analysis-form {
+font-family: arial;
     width: 75%;
     margin: auto;
     border: 1px solid rgba(0, 0, 0, .5);
@@ -472,6 +497,8 @@ background: #e9e9e9;
 #progressbar{
   display:none;
 }
+
+
 
 /*move error logs */
 .error1 {

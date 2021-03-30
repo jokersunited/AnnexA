@@ -6,10 +6,45 @@
 <div class="container">
 <div id="modal-3" class="modal" data-modal-effect="slide-top">
   <div class="modal-content">
-    <h2 class="fs-title">Score Index</h2>
-    <h3 class="fs-subtitle">Getting the most out of your data</h3>
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce convallis consectetur ligula. Morbi dapibus tellus a ipsum sollicitudin aliquet. Phasellus id est lacus. Pellentesque a elementum velit, a tempor nulla. Mauris mauris lectus, tincidunt et purus rhoncus, eleifend convallis turpis. Nunc ullamcorper bibendum diam, vitae tempus dolor hendrerit iaculis. Phasellus tellus elit, feugiat vel mi et, euismod varius augue. Nulla a porttitor sapien. Donec vestibulum ac nisl sed bibendum. Praesent neque ipsum, commodo eget venenatis vel, tempus sit amet ante. Curabitur vel odio eget urna dapibus imperdiet sit amet eget felis. Vestibulum eros velit, posuere a metus eget, aliquam euismod purus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.</p>
-    <input type="button" class="modal-close" value="Got it!">
+    <h2 class="fs-title">Confirm completion?</h2>
+      <h3 class="fs-subtitle">All unprocessed domains will be automatically discarded!</h3>
+
+  <p>Unprocessed Domains:</p>
+      {% if unprocessed|length != 0 %}
+      <p style="color: red;">-
+      {% for udom in unprocessed %}
+      {% if loop.index == unprocessed|length %}
+      {{udom[0]}}
+      {% else %}
+        {{udom[0]}},
+      {% endif %}
+      {% endfor %}
+      </p>
+      {% else %}
+      <p>- None</p>
+      {% endif %}
+
+<p>Selected Domains:</p>
+      {% if selected|length != 0 %}
+      <p>-
+      {% for sdom in selected %}
+      {% if loop.index == selected|length %}
+      {{sdom[0]}}
+      {% else %}
+        {{sdom[0]}},
+      {% endif %}
+      {% endfor %}
+      </p>
+      {% else %}
+      <p>- None</p>
+      {% endif %}
+
+      <div class="modalnav-div">
+                <input type="button" class="modal-btn btn btn-outline-secondary modal-close" value="Back">
+        <a class="modal-btn btn btn btn-outline-secondary" href="/consolidate" >Confirm</a>
+      </div>
+
+
   </div>
 </div>
 </div>
@@ -25,7 +60,8 @@
     <h3 class="fs-subtitle">Determine if website is a valid phish</h3>
 <div class="proceeddiv">
     <a href="/" class="proceedbtn btn-secondary btn-sm" style="float:left;margin-left: 11%;">Re-upload CSV</a>
-      <a href="#" class="proceedbtn btn-secondary btn-sm" style="margin-right:0px;">Proceed to Consolidate</a>
+      <a href="#" class="explanation proceedbtn btn-secondary btn-sm modal-trigger" data-modal-id="modal-3" style="margin-right:0px;">Proceed to Consolidate</a>
+<!--    <button class="explanation btn btn-secondary " >hi</button>&ndash;&gt;-->
 </div>
 
     <!-- Begin file upload area -->
@@ -38,7 +74,7 @@
                       <button style="outline: none;" class="btn fa fa-eye view-collapse"></button>
 
                     <span class="domp" style="margin-left:0px; text-align: left;">
-                      Domain {{domid}}/{{dom_count}}
+                      Domain {{domid}}/{{dom_count}} <b>{% if domain_dict[1].discard %} (Discarded!) {% elif domain_dict[1].processed %} (Submitted!) {% endif %}</b>
                   </span>
 
                       </div>
@@ -60,10 +96,15 @@
                       {% endif %}
 
                                   {% if domain_dictfull[i][1].processed %}
-
-                                  <i class="fa fa-check" aria-hidden="true"></i>
+                                  {% if domain_dictfull[i][1].discard %}
+                                    <i class="fa fa-close" aria-hidden="true"></i>
+                                  {% else %}
+                                    <i class="fa fa-check" aria-hidden="true"></i>
+                                  {% endif %}
                                   {% elif domain_dictfull[i][1].live.dns == false or domain_dictfull[i][1].live.access == false %}
                                 <i class="fa fa fa-warning" style="color: red; opacity:0.7;" aria-hidden="true"></i>
+                                                                    {% elif domain_dictfull[i][1].check_benign() %}
+                                  <i class="fa fa fa-warning" style="color: darkyellow; opacity:0.7;" aria-hidden="true"></i>
 
                                   {% endif %}
 
@@ -78,6 +119,7 @@
 
 
           </div>
+                  <hr>
 <!--                  {% if domain_dict[1].processed %}-->
 <!--                  <h1 style="margin-bottom: 25px; color:gray;">COMPLETED</h1>-->
 <!--                  {% endif %}-->
@@ -96,7 +138,7 @@
               {% else %}
                 {% include './includes/pageup.html' %}
                 {% endif %}
-<!--              <button class="explanation btn btn-secondary modal-trigger" data-modal-id="modal-3">hi</button>-->
+<!--
 
 <!--              <div class="navpage">-->
 <!--                                 {% if domid <= 1 %}-->

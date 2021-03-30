@@ -22,6 +22,21 @@ $(document).ready(function() {
     }
 
     });
+
+    var reqcheck = true;
+    $("#show-redirect").click(function() {
+        if(!reqcheck){
+            $(".redirects>tbody").css("display", "none");
+            reqcheck = true;
+            $("#show-redirect").text("show")
+        }
+        else{
+            $(".redirects>tbody").css("display", "contents");
+            reqcheck = false;
+            $("#show-redirect").text("hide")
+        }
+    })
+
     var navcheck = false;
     $(".view-collapse").click(function(){
 

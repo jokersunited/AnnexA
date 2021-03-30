@@ -8,15 +8,52 @@
 
           </div>
 
-<form class="analysis-form" enctype="multipart/form-data" action="{{dom_id}}" method="post">
+<form id="analysis-form" class="analysis-form" enctype="multipart/forfm-data" action="{{dom_id}}" method="post">
+     <label for="ip">IP Address:</label>
+    <input type="text" value="{{domain_dict[1].ip[0]}}">
+     <label for="domain">Domain:</label>
+    <input type="text" value="{{domain_dict[1].domain}}">
     <label for="abuse">Abuse Email:</label>
     <input type="text" value="{{domain_dict[1].abuse}}">
     <label for="target">Target Site:</label>
     <input type="text" value="{{domain_dict[1].spoof}}">
+    <label for="status">Status:</label><br>
+    <select class="form-control" name="status" form="analysis-form">
+          <option selected value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+    </select>
+    <br><br>
+    <a href="/discard/{{domid}}"><input id="discard" class="btn btn-danger" style="float: left; width: 20% !important; color: white;" value="Discard"></a>
   <input class="btn btn-primary" style="margin-left: 80%; width: 20% !important; color: white;" type="submit" value="Submit">
+
 </form>
 
-{{domain_dict[1].live.requests}}
+
+<div class="row">
+       <div class="col-sm-12">
+          <table class="redirects results-table table table-bordered table-striped">
+              <thead>
+               <tr>
+                  <td colspan="2"><h4>{{domain_dict[1].live.redirects|length}} Redirects  <a id="show-redirect" style="user-select: none">show</a></h4> </td>
+              </tr>
+              </thead>
+              <tbody>
+              {% for redirect in domain_dict[1].live.redirects %}
+              <tr>
+                  <td>{{loop.index}}</td>
+                  <td><a href="{{redirect}}" title="{{redirect}}">{{domain_dict[1].live.truncate_url(redirect)}}</a> {% if loop.index == 1 %} <b>(Source)</b> {% endif %} <i class="fa fa-share-square-o" style="float:right;"></i></td>
+              </tr>
+              {% endfor %}
+                <tr>
+                    <td>{{domain_dict[1].live.redirects|length + 1}}</td>
+                    <td><a href="{{domain_dict[1].live.final_url}}" title="{{domain_dict[1].live.final_url}}">{{domain_dict[1].live.truncate_url(domain_dict[1].live.final_url)}}</a> <b>(Destination)</b> </td>
+              </tr>
+
+
+              </tbody>
+          </table>
+</div>
+</div>
 
 <div class="row">
 
@@ -33,14 +70,22 @@
                   <td class="row-head">Page Title</td>
                   <td>{{domain_dict[1].live.title}}</td>
               </tr>
-            {% if domain_dict[1].live.resp_code[0] >= 300 %}
+              {% if domain_dict[1].live.resp_code == -1 %}
+              <tr class="badrow">
+                  <td class="row-head">Response Code</td>
+                  <td>EMPTY RESPONSE</td>
+              </tr>
+
+              {% else %}
+            {% if domain_dict[1].live.resp_code >= 300 %}
                <tr class="badrow">
                    {% else %}
                    <tr>
                 {% endif %}
                   <td class="row-head">Response Code</td>
-                  <td>{{domain_dict[1].live.resp_code[0]}}</td>
+                  <td>{{domain_dict[1].live.resp_code}}</td>
               </tr>
+              {% endif %}
 
               </tbody>
           </table>
@@ -93,14 +138,14 @@
                     <td class="row-head">Issuer</td>
                     <td>{{domain_dict[1].live.get_certissuer()}}</td>
                 </tr>
-              {% if domain_dict[1].live.get_certocsp() == "GOOD" %}
+              {% if domain_dict[1].live.ocsp == "GOOD" %}
 
               <tr>
                       {% else %}
               <tr class="badrow">
                           {% endif %}
                     <td class="row-head">OCSP Validity</td>
-                    <td>{{domain_dict[1].live.get_certocsp()}}</td>
+                    <td>{{domain_dict[1].live.ocsp}}</td>
                 </tr>
 
     {% if domain_dict[1].live.get_expiry() == "Yes" %}

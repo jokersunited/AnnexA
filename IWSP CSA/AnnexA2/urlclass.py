@@ -25,15 +25,31 @@ def get_status(logs):
     :return: List of [status, url, type] for each request
     """
     statuses = []
-    lol = json.dumps(logs)
     for log in logs:
         if log['message']:
             d = json.loads(log['message'])
+            # print(d)
             if d['message'].get('method') == "Network.responseReceived":
                 statuses.append(
                     [d['message']['params']['response']['status'], d['message']['params']['response']['url'],
                      d['message']['params']['type']])
     return statuses
+
+def get_redirections(logs, final_url):
+    req_list = []
+    for log in logs:
+        if log['message']:
+            d = json.loads(log['message'])
+            # print(d)
+            if d['message'].get('method') == "Network.requestWillBeSent":
+                if d['message']['params']['documentURL'] == final_url:
+                    break
+                else:
+                    if d['message']['params']['documentURL'] not in req_list:
+                        req_list.append(d['message']['params']['documentURL'])
+
+    return req_list
+
 
 
 ############## Initialise Selenium ##############
@@ -239,20 +255,25 @@ class LiveUrl(Url):
                 self.access = True
                 self.final_url = self.driver.current_url
                 self.title = self.driver.title
+                self.log = self.driver.get_log('performance')
+
+                self.requests = self.get_totalrequests()
                 self.resp_code = self.get_respcode()
+                self.redirects = get_redirections(self.log, self.final_url)
 
                 self.screenshot = self.get_64snapshot()
                 self.whois = whois.whois(self.url_str)
+                self.ocsp = self.get_certocsp()
                 if self.urlparse.scheme == 'https':
                     self.cert = self.get_cert()
                 else:
                     self.cert = None
 
                 self.get_links_uniqdom()
-                self.requests = self.get_totalrequests()
                 # self.print_cmdreport()
 
-            except WebDriverException:
+            except WebDriverException as we:
+                print(we)
                 return
 
 
@@ -332,18 +353,21 @@ class LiveUrl(Url):
         else:
             return True
 
-    def get_totalrequests(self):
-        endlist = []
-        print(get_status(self.driver.get_log('performance')))
-        for index, item in enumerate(get_status(self.driver.get_log('performance'))):
-            print("Request " + str(index + 1) + ": " + str(item[0]) + ', ' + item[2] + ', ' + item[1])
-            endlist.append([str(index + 1), str(item[0]), item[2], item[1]])
+    def truncate_url(self, url):
+        if len(url) > 100:
+            return url[:100] + "..."
+        else:
+            return url
 
-        return endlist
+    def get_totalrequests(self):
+        reqlist = []
+        for index, item in enumerate(get_status(self.log)):
+            # print("Request " + str(index + 1) + ": " + str(item[0]) + ', ' + item[2] + ', ' + item[1])
+            reqlist.append([str(index + 1), str(item[0]), item[2], item[1]])
+
+        return reqlist
 
     def first_email(self):
-        print(self.whois.emails)
-        print(type(self.whois.emails))
         if type(self.whois.emails) is list:
             return self.whois.emails[0]
         else:
@@ -354,19 +378,15 @@ class LiveUrl(Url):
         for key, value in self.spoof.items():
             if value > 0.4: return_str += key
         if return_str == "":
-            return "None"
+            return "Unknown"
         else:
             return return_str
 
     def get_certocsp(self):
         ocsp_request = ocspchecker.get_ocsp_status(self.final_url)
 
-        print(ocsp_request)
         ocsp_status = [i for i in ocsp_request if "OCSP Status:" in i]
         ocsp_error = [i for i in ocsp_request if "OCSP Request Error:" in i]
-
-        print(ocsp_status)
-        print(ocsp_error)
 
         if len(ocsp_status) != 0:
             return str(ocsp_status[0].split(":")[1][1:])
@@ -384,7 +404,10 @@ class LiveUrl(Url):
         return "Yes" if self.cert.has_expired() else "No"
 
     def get_respcode(self):
-        return get_status(self.driver.get_log('performance'))[0]
+        try:
+            return get_status(self.log)[0][0]
+        except:
+            return -1
 
     def get_64snapshot(self):
         ss = self.driver.get_screenshot_as_base64()

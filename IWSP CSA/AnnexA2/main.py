@@ -26,8 +26,28 @@ domain_dict = {}
 
 sock_id = None
 
+def get_unprocessed(dom_dict):
+    return [[index+1, dom] for index, dom in enumerate(dom_dict) if not dom[1].processed]
+
+def get_selected(dom_dict):
+    return [[index+1, dom] for index, dom in enumerate(dom_dict) if (dom[1].processed and not dom[1].discard)]
+
 def send_log(msg):
     socketio.send(msg)
+
+def generate_csv(dom_dict):
+    column_names = ["CaseID", "Abuse Email", "IPAddress", "Domain", "Target", "URL", "Status"]
+    output_df = pd.DataFrame(columns=column_names)
+
+    processed_list = [dom for dom in dom_dict if (dom[1].processed and not dom[1].discard)]
+
+    for index, domain in enumerate(processed_list):
+        for url_data in domain[1].output():
+            output_df = output_df.append(url_data, ignore_index=True)
+
+    print(output_df)
+    output_df.to_csv("test.csv", index=False)
+
 
 def clean_csv(csv_df):
     global phish_df, cnc_df, domain_dict
@@ -100,8 +120,12 @@ def analyze(domid):
     print(request.method)
     try:
         if request.method == "GET" and int(domid) > 0:
-            return render_template('analyze.html', nav_list=nav_list, nav_index=1, domain_dictfull=domain_dict, domain_dict=domain_dict[int(domid)-1], dom_count=len(domain_dict), domid=int(domid))
+            return render_template('analyze.html', nav_list=nav_list, nav_index=1, domain_dictfull=domain_dict,
+                                   selected=get_selected(domain_dict), unprocessed=get_unprocessed(domain_dict),
+                                   domain_dict=domain_dict[int(domid)-1], dom_count=len(domain_dict), domid=int(domid))
+
         elif request.method == "POST" and int(domid) > 0:
+            domain_dict[int(domid) - 1][1].discard = False
             domain_dict[int(domid)-1][1].processed = True
             flash("Succesfully Updated!", 'success')
             return redirect(url_for("analyze", domid=domid))
@@ -115,6 +139,14 @@ def analyze(domid):
         flash("Invalid request received", 'error')
         return redirect(url_for("upload"))
 
+@app.route('/discard/<domid>', methods=["GET"])
+@uploaded_file
+def discard(domid):
+    domain_dict[int(domid) - 1][1].processed = True
+    domain_dict[int(domid)-1][1].discard = True
+    flash("Succesfully Discarded!", 'success')
+    return redirect(url_for("analyze", domid=domid))
+
 @app.route('/recurl/<domid>', methods=["GET"])
 @uploaded_file
 def recurl(domid):
@@ -122,9 +154,12 @@ def recurl(domid):
     domain_dict[int(domid) - 1][1].live = LiveUrl(request.args['url'])
     return redirect(url_for("analyze", domid=domid))
 
-@app.route('/process')
+@app.route('/consolidate')
+@uploaded_file
 def process():
-    return render_template('index.html', nav_list=nav_list, nav_index=2)
+    global domain_dict
+    generate_csv(domain_dict)
+    return "OK"
 
 @socketio.on('connect')
 def sock_conn():
