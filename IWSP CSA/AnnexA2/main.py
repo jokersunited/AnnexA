@@ -2,11 +2,12 @@ from urlclass import Url, LiveUrl
 from model import get_cnnprediction, get_rfprediction
 from utils import *
 import pandas as pd
+import numpy as np
 
 import time
 
 from functools import wraps
-from flask import Flask, render_template, request, flash, redirect, url_for
+from flask import Flask, render_template, request, flash, redirect, url_for, send_file
 from flask_socketio import SocketIO, send, emit, join_room
 
 app = Flask(__name__,
@@ -46,7 +47,8 @@ def generate_csv(dom_dict):
             output_df = output_df.append(url_data, ignore_index=True)
 
     print(output_df)
-    output_df.to_csv("test.csv", index=False)
+
+    output_df.to_csv("phish.csv", index=False)
 
 
 def clean_csv(csv_df):
@@ -55,6 +57,11 @@ def clean_csv(csv_df):
     domain_dict = {}
 
     cnc_df = csv_df[(csv_df['type'] == 'c&c')]
+    print(cnc_df['domain name'])
+    cnc_df["domain name"].replace({np.nan: "unknown"}, inplace=True)
+    cnc_df = cnc_df[['ip', 'asn', 'domain name']]
+    cnc_df.to_csv("cnc.csv", index=False)
+
     phish_df = csv_df[(csv_df['type'] == 'phishing')]
     for row in phish_df.itertuples():
         url = clean_urlstr(row.url)
@@ -68,6 +75,7 @@ def clean_csv(csv_df):
             domain_dict[row[6]].add_url(url)
             domain_dict[row[6]].add_ip(row.ip)
 
+    down_list = []
     for index, value in enumerate(domain_dict.values()):
         send_log({'text': 'Processing ' + str(value.domain), 'prog': int((index+1)/len(domain_dict.values())*100)})
         value.url.sort(key=lambda x: len(x.url_str))
@@ -82,6 +90,11 @@ def clean_csv(csv_df):
         if not (value.live.access is False or value.live.dns is False):
             value.abuse = value.live.first_email()
             value.spoof = value.live.get_spoofed()
+        else:
+            down_list.append(value.domain)
+
+    for down in down_list:
+        del domain_dict[down]
 
     domain_dict = list(domain_dict.items())
     print(domain_dict)
@@ -125,13 +138,20 @@ def analyze(domid):
                                    domain_dict=domain_dict[int(domid)-1], dom_count=len(domain_dict), domid=int(domid))
 
         elif request.method == "POST" and int(domid) > 0:
+            domain_dict[int(domid) - 1][1].final_ip = request.form['ip']
+            domain_dict[int(domid) - 1][1].final_domain = request.form['domain']
+            domain_dict[int(domid) - 1][1].abuse = request.form['email']
+            domain_dict[int(domid) - 1][1].spoof = request.form['target']
             domain_dict[int(domid) - 1][1].discard = False
             domain_dict[int(domid)-1][1].processed = True
             flash("Succesfully Updated!", 'success')
-            return redirect(url_for("analyze", domid=domid))
+            if int(domid) != len(domain_dict):
+                return redirect(url_for("analyze", domid=int(domid) + 1))
+            else:
+                return redirect(url_for("analyze", domid=domid))
+
     except (IndexError, TypeError, ValueError) as e:
         print(e)
-        raise e
         flash("Invalid domain ID specified", 'error')
         return redirect(url_for("upload"))
 
@@ -145,7 +165,10 @@ def discard(domid):
     domain_dict[int(domid) - 1][1].processed = True
     domain_dict[int(domid)-1][1].discard = True
     flash("Succesfully Discarded!", 'success')
-    return redirect(url_for("analyze", domid=domid))
+    if int(domid) != len(domain_dict):
+        return redirect(url_for("analyze", domid=int(domid)+1))
+    else:
+        return redirect(url_for("analyze", domid=domid))
 
 @app.route('/recurl/<domid>', methods=["GET"])
 @uploaded_file
@@ -159,7 +182,23 @@ def recurl(domid):
 def process():
     global domain_dict
     generate_csv(domain_dict)
-    return "OK"
+    return render_template('consolidate.html', nav_list=nav_list, nav_index=2)
+
+@app.route('/send_file/<file>')
+@uploaded_file
+def download(file):
+    if file == "phish":
+        return send_file('phish.csv',
+                             mimetype='text/csv',
+                             attachment_filename='phishing.csv',
+                             as_attachment=True)
+    elif file == "cnc":
+        return send_file('cnc.csv',
+                         mimetype='text/csv',
+                         attachment_filename='cnc.csv',
+                         as_attachment=True)
+    else:
+        return "NO"
 
 @socketio.on('connect')
 def sock_conn():

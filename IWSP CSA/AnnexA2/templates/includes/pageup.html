@@ -10,18 +10,13 @@
 
 <form id="analysis-form" class="analysis-form" enctype="multipart/forfm-data" action="{{dom_id}}" method="post">
      <label for="ip">IP Address:</label>
-    <input type="text" value="{{domain_dict[1].ip[0]}}">
+    <input name="ip" type="text" value="{{domain_dict[1].final_ip}}">
      <label for="domain">Domain:</label>
-    <input type="text" value="{{domain_dict[1].domain}}">
+    <input name="domain" type="text" value="{{domain_dict[1].final_domain}}">
     <label for="abuse">Abuse Email:</label>
-    <input type="text" value="{{domain_dict[1].abuse}}">
+    <input name="email" type="text" value="{{domain_dict[1].abuse}}">
     <label for="target">Target Site:</label>
-    <input type="text" value="{{domain_dict[1].spoof}}">
-    <label for="status">Status:</label><br>
-    <select class="form-control" name="status" form="analysis-form">
-          <option selected value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
-    </select>
+    <input name="target" type="text" value="{{domain_dict[1].spoof}}">
     <br><br>
     <a href="/discard/{{domid}}"><input id="discard" class="btn btn-danger" style="float: left; width: 20% !important; color: white;" value="Discard"></a>
   <input class="btn btn-primary" style="margin-left: 80%; width: 20% !important; color: white;" type="submit" value="Submit">

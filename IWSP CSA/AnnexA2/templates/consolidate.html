@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+{% include './includes/head.html' %}
+<body>
+
+<div class="steps">
+    {% include './includes/nav.html' %}
+
+  <!-- USER INFORMATION FIELD SET -->
+  <fieldset>
+      <div class="page-form">
+          {% include './includes/flash.html' %}
+    <h2 class="fs-title">Consolidate</h2>
+    <h3 class="fs-subtitle">Download the consolidated CSV files</h3>
+
+<div class="proceeddiv">
+    <a href="/analyze/1" class="proceedbtn btn-secondary btn-sm" style="float:left;margin-left: 11%;">Re-analyze Domains</a>
+      <a href="#" class="explanation proceedbtn btn-secondary btn-sm modal-trigger" data-modal-id="modal-3" style="margin-right:0px;">Proceed to Export</a>
+<!--    <button class="explanation btn btn-secondary " >hi</button>&ndash;&gt;-->
+</div>
+
+    <!-- Begin file upload area -->
+          <div class="pagecontainer">
+        <a href="/send_file/phish" class="btn btn-primary" style="margin:15px;">Download Phishing CSV</a><br>
+        <a href="/send_file/cnc" class="btn btn-primary" style="margin:15px;">Download C&C CSV</a>
+      </div>
+  </div>
+  <!-- End file upload area -->
+    <div id="loader">
+      <div id="loadspinner"></div>
+      <p id="loadtext"></p>
+        <div class="progress">
+              <div class="progress-bar progress-bar-striped active" role="progressbar"
+              aria-valuenow="10" aria-valuemin="10" aria-valuemax="100" style="width:10%">
+                0%
+              </div>
+            </div>
+    </div>
+
+  </fieldset>
+
+
+</div>
+</body>
+</html>

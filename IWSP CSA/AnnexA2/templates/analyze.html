@@ -13,10 +13,12 @@
       {% if unprocessed|length != 0 %}
       <p style="color: red;">-
       {% for udom in unprocessed %}
+          {% if udom[1][1].live.dns == true and udom[1][1].live.access == true %}
       {% if loop.index == unprocessed|length %}
       {{udom[0]}}
       {% else %}
         {{udom[0]}},
+          {% endif %}
       {% endif %}
       {% endfor %}
       </p>
@@ -104,7 +106,7 @@
                                   {% elif domain_dictfull[i][1].live.dns == false or domain_dictfull[i][1].live.access == false %}
                                 <i class="fa fa fa-warning" style="color: red; opacity:0.7;" aria-hidden="true"></i>
                                                                     {% elif domain_dictfull[i][1].check_benign() %}
-                                  <i class="fa fa fa-warning" style="color: darkyellow; opacity:0.7;" aria-hidden="true"></i>
+                                  <i class="fa fa fa-warning" style="opacity:0.7;" title="This domain is potentially benign" aria-hidden="true"></i>
 
                                   {% endif %}
 

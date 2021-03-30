@@ -41,6 +41,8 @@ class Domain:
 
         self.processed = False
         self.discard = False
+        self.final_ip = self.ip[0]
+        self.final_domain = domain
 
         self.abuse = None
         self.spoof = None
@@ -54,9 +56,9 @@ class Domain:
         for url in self.url:
             out_dict = {}
             out_dict.update({cn[0]: case_id})
-            out_dict.update({cn[1]: self.live.first_email()})
-            out_dict.update({cn[2]: self.ip[0]})
-            out_dict.update({cn[3]: self.domain})
+            out_dict.update({cn[1]: self.abuse})
+            out_dict.update({cn[2]: self.final_ip})
+            out_dict.update({cn[3]: self.final_domain})
             out_dict.update({cn[4]: self.spoof})
             out_dict.update({cn[5]: url.url_str})
             out_dict.update({cn[6]: "Active"})
