@@ -353,6 +353,36 @@ class LiveUrl(Url):
         else:
             return True
 
+    def get_linkperc(self, link):
+
+        if self.link_count != 0:
+            print("\n===== Hyperlink Info =====")
+            print("Total links: " + str(self.link_count))
+            print("\nloc %:" + str(len(self.link_dict['loc']) / self.link_count * 100))
+            print("ext %:" + str(len(self.link_dict['ext']) / self.link_count * 100))
+            print("static %:" + str(len(self.link_dict['static']) / self.link_count * 100))
+
+            if len(self.uniq_dom.keys()) > 0:
+                print("\nUnique external domains: ")
+                for key in self.uniq_dom.keys():
+                    print("- " + key)
+            if len(self.link_dict['loc']) > 0:
+                print("\nUnique local links %: " + str(self.get_uniqlocal() * 100))
+            else:
+                print("\nNo Local Links!")
+
+            print("\n===== Potential Spoof Domain Scores =====")
+            for key, value in self.spoof.items():
+                if value > 0.4: print(key + ": " + str(value))
+
+        else:
+            print("\nNo hyperlinks on page!")
+
+        if self.link_count > 0:
+            return str(int(len(self.link_dict[link]) / self.link_count * 100))+"%"
+        else:
+            return None
+
     def truncate_url(self, url):
         if len(url) > 100:
             return url[:100] + "..."
@@ -481,6 +511,7 @@ class LiveUrl(Url):
                 else:
                     uniq_dom[base_dom] += 1
                 link_dict['ext'].append(link)
+        # Formula for calculation counts of each unique (domain / (num of loc + ext link) * (num of ext / link count + num of static / link count)
         for key, value in uniq_dom.items():
             self.spoof.update({str(key): (value / (len(link_dict['loc']) + len(link_dict['ext']))) * (
                         len(link_dict['ext']) / self.link_count + len(link_dict['static']) / self.link_count)})

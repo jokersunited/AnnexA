@@ -123,6 +123,60 @@
     <div class="col-sm-6">
         <table class="results-table table table-bordered table-striped">
             <thead>
+                <tr>
+                    <td colspan="3"><h4>Page Links (Total: <b>{{domain_dict[1].live.link_count}}</b>)</h4></td>
+<!--            print("ext %:" + str(len(self.link_dict['ext']) / self.link_count * 100))-->
+<!--            print("static %:" + str(len(self.link_dict['static']) / self.link_count * 100))-->
+                </tr>
+            </thead>
+            {% if domain_dict[1].live.link_count > 0 %}
+            <tbody>
+                <tr>
+                    <td>Local</td>
+                    <td>External</td>
+                    <td>Static</td>
+                </tr>
+                <tr>
+                    <td>
+                        {{ domain_dict[1].live.get_linkperc('loc') }}
+                    </td>
+                    <td>
+                        {{ domain_dict[1].live.get_linkperc('ext') }}
+                    </td>
+                    <td>
+                        {{ domain_dict[1].live.get_linkperc('static') }}
+                    </td>
+                </tr>
+            </tbody>
+            {% endif %}
+        </table>
+    </div>
+
+    <div class="col-sm-6">
+        <table class="results-table table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <td colspan="1"><h4>Unique Domain Links</h4></td>
+                </tr>
+            </thead>
+            <tbody>
+            {% for uniq_dom in domain_dict[1].live.uniq_dom.keys() %}
+                <tr>
+                    <td>
+                        {{uniq_dom}}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<div class="row">
+    <div class="col-sm-6">
+        <table class="results-table table table-bordered table-striped">
+            <thead>
             <tr>
                       <td colspan="2"><h4>Cert Information</h4></td>
                   </tr>

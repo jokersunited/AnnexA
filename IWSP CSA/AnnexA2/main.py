@@ -54,9 +54,9 @@ def clean_csv(csv_df):
 
     phish_df = filter_log(log_file, phish_df_unclean, 3)
 
-    if len(phish_df_unclean['domain name']) > len(phish_df['domain name']):
-        flash(str(len(phish_df_unclean['domain name'])-len(phish_df['domain name'])) + " domain(s) were automatically removed as they were recently recorded in "
-                                                         "the past 3 days.", "success")
+    if len(phish_df_unclean['domain name'].drop_duplicates()) > len(phish_df['domain name'].drop_duplicates()):
+        flash(str(len(phish_df_unclean['domain name'].drop_duplicates())-len(phish_df['domain name'].drop_duplicates()))
+              + " domain(s) were automatically removed as they were recently recorded in the past 3 days.", "success")
 
     for row in phish_df.itertuples():
         url = clean_urlstr(row.url)
@@ -66,6 +66,7 @@ def clean_csv(csv_df):
                 domain_dict.update({url.get_domain(): Domain(url.get_domain(), row.ip, url)})
             else:
                 domain_dict.update({row[6]: Domain(row[6], row.ip, url)})
+                domain_dict.update({row[6]: Domain(row[6], row.ip, url)})
         else:
             domain_dict[row[6]].add_url(url)
             domain_dict[row[6]].add_ip(row.ip)
@@ -73,14 +74,14 @@ def clean_csv(csv_df):
     down_list = []
     dup_list = []
     for index, value in enumerate(domain_dict.values()):
-        send_log({'text': 'Processing ' + str(value.domain), 'prog': int((index+1)/len(domain_dict.values())*100)})
+        send_log({'text': 'Processing - ' + str(value.domain), 'prog': int((index+1)/len(domain_dict.values())*100)})
         value.url.sort(key=lambda x: len(x.url_str))
         for url in value.url:
             value.rf += get_rfprediction(url)
             value.cnn += get_cnnprediction(url)
         value.avg_res('rf')
         value.avg_res('cnn')
-        send_log({'text': 'Curling ' + str(value.url[0].url_str)})
+        send_log({'text': 'Analyzing - ' + str(value.url[0].url_str)})
         value.setlive(LiveUrl(value.url[0].url_str))
 
         if not (value.live.access is False or value.live.dns is False):
@@ -89,7 +90,7 @@ def clean_csv(csv_df):
         else:
             down_list.append(value.domain)
 
-    flash(str(len(down_list)) + " domain(s) were automatically removed as they are down.", 'success')
+    flash(str(len(down_list)) + " domain(s) were automatically removed as they were down.", 'success')
     for down in down_list:
         del domain_dict[down]
 
@@ -172,6 +173,7 @@ def discard(domid):
 def recurl(domid):
     send_log({'text': 'Re-analyzing - ' + request.args['url']})
     domain_dict[int(domid) - 1][1].live = LiveUrl(request.args['url'])
+    flash("Successfully re-analzyed specified URL", "success")
     return redirect(url_for("analyze", domid=domid))
 
 @app.route('/consolidate')
@@ -179,6 +181,7 @@ def recurl(domid):
 def process():
     global domain_dict
     generate_csv(domain_dict)
+    flash("Successfully generated outputs!", "success")
     return render_template('consolidate.html', nav_list=nav_list, nav_index=2)
 
 @app.route('/send_file/<file>')

@@ -617,9 +617,9 @@ font-family: arial;
     margin-left: auto;
     margin-right: auto;
     margin-bottom: 25px;
-    background: #98FB98;
+    background: lightgoldenrodyellow;
     opacity: 0.9;
-    border-left: 4px solid green;
+    border-left: 4px solid yellow;
 }
 
 .progress {
