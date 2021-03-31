@@ -52,10 +52,10 @@ def clean_csv(csv_df):
 
     phish_df_unclean = csv_df[(csv_df['type'] == 'phishing')]
 
-    phish_df = filter_log(log_file, phish_df, 3)
+    phish_df = filter_log(log_file, phish_df_unclean, 3)
 
-    if len(phish_df_unclean) > len(phish_df):
-        flash(str(len(phish_df_unclean)-len(phish_df)) + " URL(s) were automatically removed as they were recorded in "
+    if len(phish_df_unclean['domain name']) > len(phish_df['domain name']):
+        flash(str(len(phish_df_unclean['domain name'])-len(phish_df['domain name'])) + " domain(s) were automatically removed as they were recently recorded in "
                                                          "the past 3 days.", "success")
 
     for row in phish_df.itertuples():
@@ -89,7 +89,7 @@ def clean_csv(csv_df):
         else:
             down_list.append(value.domain)
 
-    flash(str(len(down_list)) + " domain(s) are automatically discarded as they are down.", 'success')
+    flash(str(len(down_list)) + " domain(s) were automatically removed as they are down.", 'success')
     for down in down_list:
         del domain_dict[down]
 
