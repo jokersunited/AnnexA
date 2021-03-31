@@ -36,33 +36,28 @@ def get_selected(dom_dict):
 def send_log(msg):
     socketio.send(msg)
 
-def generate_csv(dom_dict):
-    column_names = ["CaseID", "Abuse Email", "IPAddress", "Domain", "Target", "URL", "Status"]
-    output_df = pd.DataFrame(columns=column_names)
-
-    processed_list = [dom for dom in dom_dict if (dom[1].processed and not dom[1].discard)]
-
-    for index, domain in enumerate(processed_list):
-        for url_data in domain[1].output():
-            output_df = output_df.append(url_data, ignore_index=True)
-
-    print(output_df)
-
-    output_df.to_csv("phish.csv", index=False)
-
-
 def clean_csv(csv_df):
     global phish_df, cnc_df, domain_dict
+    log_file = pd.read_csv("logfile.csv")
 
     domain_dict = {}
 
     cnc_df = csv_df[(csv_df['type'] == 'c&c')]
-    print(cnc_df['domain name'])
     cnc_df["domain name"].replace({np.nan: "unknown"}, inplace=True)
     cnc_df = cnc_df[['ip', 'asn', 'domain name']]
+    cnc_df['date'] = datetime.today().strftime('%Y-%m-%d')
+    cnc_df = cnc_df[['ip', 'date', 'asn', 'domain name']]
+
     cnc_df.to_csv("cnc.csv", index=False)
 
-    phish_df = csv_df[(csv_df['type'] == 'phishing')]
+    phish_df_unclean = csv_df[(csv_df['type'] == 'phishing')]
+
+    phish_df = filter_log(log_file, phish_df, 3)
+
+    if len(phish_df_unclean) > len(phish_df):
+        flash(str(len(phish_df_unclean)-len(phish_df)) + " URL(s) were automatically removed as they were recorded in "
+                                                         "the past 3 days.", "success")
+
     for row in phish_df.itertuples():
         url = clean_urlstr(row.url)
         url = Url(url)
@@ -76,6 +71,7 @@ def clean_csv(csv_df):
             domain_dict[row[6]].add_ip(row.ip)
 
     down_list = []
+    dup_list = []
     for index, value in enumerate(domain_dict.values()):
         send_log({'text': 'Processing ' + str(value.domain), 'prog': int((index+1)/len(domain_dict.values())*100)})
         value.url.sort(key=lambda x: len(x.url_str))
@@ -93,6 +89,7 @@ def clean_csv(csv_df):
         else:
             down_list.append(value.domain)
 
+    flash(str(len(down_list)) + " domain(s) are automatically discarded as they are down.", 'success')
     for down in down_list:
         del domain_dict[down]
 
@@ -190,7 +187,7 @@ def download(file):
     if file == "phish":
         return send_file('phish.csv',
                              mimetype='text/csv',
-                             attachment_filename='phishing.csv',
+                             attachment_filename='phish.csv',
                              as_attachment=True)
     elif file == "cnc":
         return send_file('cnc.csv',
