@@ -372,6 +372,7 @@ class LiveUrl(Url):
                 print("\nNo Local Links!")
 
             print("\n===== Potential Spoof Domain Scores =====")
+            print(self.spoof.items())
             for key, value in self.spoof.items():
                 if value > 0.4: print(key + ": " + str(value))
 
@@ -490,7 +491,7 @@ class LiveUrl(Url):
 
     def get_links_uniqdom(self):
         soup = BeautifulSoup(self.driver.page_source, features='lxml')
-        links = soup.find_all('a')
+        links = soup.find_all(['a', 'area'])
         link_dict = {'loc': [], 'ext': [], 'static': [], 'mail': []}
         uniq_dom = {}
         for link in links:
@@ -511,10 +512,12 @@ class LiveUrl(Url):
                 else:
                     uniq_dom[base_dom] += 1
                 link_dict['ext'].append(link)
-        # Formula for calculation counts of each unique (domain / (num of loc + ext link) * (num of ext / link count + num of static / link count)
+        # Formula for calculation counts of each unique (domain / (num of loc + ext link) * ((num of ext / link count) + (num of static / link count))
         for key, value in uniq_dom.items():
-            self.spoof.update({str(key): (value / (len(link_dict['loc']) + len(link_dict['ext']))) * (
-                        len(link_dict['ext']) / self.link_count + len(link_dict['static']) / self.link_count)})
+            # self.spoof.update({str(key): (value / (len(link_dict['loc']) + len(link_dict['ext']))) * (
+            #             len(link_dict['ext']) / self.link_count + len(link_dict['static']) / self.link_count)})
+            self.spoof.update({str(key): (value / len(link_dict['ext'])) * (
+                    len(link_dict['ext']) / self.link_count + len(link_dict['static']) / self.link_count)})
             # print(str(key) + ": " + str((value/(len(link_dict['loc']) + len(link_dict['ext'])))*(len(link_dict['ext'])/link_count + len(link_dict['static'])/link_count)))
         self.link_dict = link_dict
         self.uniq_dom = uniq_dom
