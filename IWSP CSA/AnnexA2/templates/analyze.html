@@ -40,7 +40,7 @@
       {% else %}
       <p>- None</p>
       {% endif %}
-
+      <h3 class="fs-subtitle">Warning: This action is irreversible and will update selected domains to the log file (domains in the logfile will be ignored for the next 3 days)</h3>
       <div class="modalnav-div">
                 <input type="button" class="modal-btn btn btn-outline-secondary modal-close" value="Back">
         <a class="modal-btn btn btn btn-outline-secondary" href="/consolidate" >Confirm</a>
@@ -106,8 +106,9 @@
                                   {% elif domain_dictfull[i][1].live.dns == false or domain_dictfull[i][1].live.access == false %}
                                 <i class="fa fa fa-warning" style="color: red; opacity:0.7;" aria-hidden="true"></i>
                                                                     {% elif domain_dictfull[i][1].check_benign() %}
-                                  <i class="fa fa fa-warning" style="opacity:0.7;" title="This domain is potentially benign" aria-hidden="true"></i>
-
+                                  <i class="fa fa-thumbs-o-up" style="opacity:0.7;" title="This domain is potentially benign" aria-hidden="true"></i>
+                                                                    {% elif domain_dictfull[i][1].live.resp_code > 400 %}
+                                <i class="fa fa fa-warning" style="opacity:0.7; color: red;" title="URL returns a bad response code" aria-hidden="true"></i>
                                   {% endif %}
 
                               </div>

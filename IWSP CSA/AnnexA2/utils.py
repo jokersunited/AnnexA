@@ -3,6 +3,8 @@ from datetime import datetime
 import time
 import pandas as pd
 
+from urllib.parse import urlparse
+
 """
 This python file includes utility methods to aid the program flow. Data processing/cleaning are some examples
 """
@@ -62,9 +64,13 @@ def generate_csv(dom_dict):
 def filter_log(log, current, days):
     recent_log = log.loc[log['Date'] > get_today_ordinal()-days]
     recent_doms = recent_log['Domain']
-    print(current)
 
-    current_filtered = current.loc[~current['domain name'].isin(recent_doms)]
+    current_domain = current['url'].apply(lambda x: urlparse(x).netloc if x is not float else None)
+
+    print(recent_doms)
+    print(current_domain)
+
+    current_filtered = current.loc[~current_domain.isin(recent_doms)]
     print(current_filtered)
 
     return current_filtered

@@ -447,23 +447,25 @@ class LiveUrl(Url):
 
     def get_dates(self, key='expiration'):
         w = self.whois
-        if key == 'expiration':
-            if type(w.expiration_date) is list:
-                date = w.expiration_date[0]
+        try:
+            if key == 'expiration':
+                if type(w.expiration_date) is list:
+                    date = w.expiration_date[0]
+                else:
+                    date = w.expiration_date
+                t = date
+
+            elif key == 'creation':
+                if type(w.creation_date) is list:
+                    date = w.creation_date[0]
+                else:
+                    date = w.creation_date
+                t = date
             else:
-                date = w.expiration_date
-            t = date - datetime.today()
-            t = t.days
-        elif key == 'creation':
-            if type(w.creation_date) is list:
-                date = w.creation_date[0]
-            else:
-                date = w.creation_date
-            t = datetime.today() - date
-            t = t.days
-        else:
-            t = None
-        return t
+                t = None
+            return t.strftime('%d/%m/%Y')
+        except AttributeError as e:
+            return None
 
     def get_cert(self):
         conn = ssl.create_connection((self.urlparse.netloc, 443))

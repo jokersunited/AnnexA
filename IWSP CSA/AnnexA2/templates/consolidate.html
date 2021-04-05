@@ -21,8 +21,22 @@
 
     <!-- Begin file upload area -->
           <div class="pagecontainer">
-        <a href="/send_file/phish" class="btn btn-primary" style="margin:15px;">Download Phishing CSV</a><br>
-        <a href="/send_file/cnc" class="btn btn-primary" style="margin:15px;">Download C&C CSV</a>
+        <a href="/send_file/phish/{{timestamp}}" class="btn btn-primary" style="margin:15px;">Download Phishing CSV</a><br>
+        <a href="/send_file/cnc/{{timestamp}}" class="btn btn-primary" style="margin:15px;">Download C&C CSV</a>
+              <table>
+                  <tbody>
+                   {% for item in zoneh %}
+                   <tr>
+              <p>{{item.informer}}</p>
+              <p>{{item.system}}</p>
+              <p>{{item.url}}</p>
+              <p>{{item.server}}</p>
+              <p>{{item.ip}}</p>
+                        </tr>
+              {% endfor %}
+                  </tbody>
+              </table>
+
       </div>
   </div>
   <!-- End file upload area -->

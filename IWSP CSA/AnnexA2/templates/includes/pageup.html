@@ -132,9 +132,9 @@
             {% if domain_dict[1].live.link_count > 0 %}
             <tbody>
                 <tr>
-                    <td>Local</td>
-                    <td>External</td>
-                    <td>Static</td>
+                    <td>Local ({{domain_dict[1].live.link_dict['loc']|length}})</td>
+                    <td>External ({{domain_dict[1].live.link_dict['ext']|length}})</td>
+                    <td>Static ({{domain_dict[1].live.link_dict['static']|length}})</td>
                 </tr>
                 <tr>
                     <td>
@@ -160,10 +160,10 @@
                 </tr>
             </thead>
             <tbody>
-            {% for uniq_dom in domain_dict[1].live.uniq_dom.keys() %}
+            {% for uniq_dom, links in domain_dict[1].live.uniq_dom.items() %}
                 <tr>
                     <td>
-                        {{uniq_dom}}
+                        {{uniq_dom}} ({{links}})
                     </td>
                 </tr>
             {% endfor %}
@@ -230,6 +230,14 @@
                 <tr>
                     <td class="row-head">Registrar</td>
                     <td>{{domain_dict[1].live.whois.registrar}}</td>
+                </tr>
+            <tr>
+                    <td class="row-head">Creation Date</td>
+                    <td>{{domain_dict[1].live.get_dates('creation')}}</td>
+                </tr>
+            <tr>
+                    <td class="row-head">Expiration Date</td>
+                    <td>{{domain_dict[1].live.get_dates('expiration')}}</td>
                 </tr>
             </tbody>
         </table>

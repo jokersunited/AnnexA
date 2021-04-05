@@ -1,6 +1,8 @@
 from urlclass import Url, LiveUrl
 from model import get_cnnprediction, get_rfprediction
 from utils import *
+from zoneh import get_zoneh, get_captcha
+
 import pandas as pd
 import numpy as np
 
@@ -21,11 +23,16 @@ socketio = SocketIO(app, async_mode="threading")
 nav_list = ["Upload", "Analyze", "Consolidate", "Export"]
 glo_csvfile = None
 
-phish_df = None
-cnc_df = None
-domain_dict = {}
+def reset_instance():
+    phish_df = None
+    cnc_df = None
+    domain_dict = {}
+    zoneh = None
+
+reset_instance()
 
 sock_id = None
+cookie = None
 
 def get_unprocessed(dom_dict):
     return [[index+1, dom] for index, dom in enumerate(dom_dict) if not dom[1].processed]
@@ -42,11 +49,12 @@ def clean_csv(csv_df):
 
     domain_dict = {}
 
-    cnc_df = csv_df[(csv_df['type'] == 'c&c')]
+    cnc_df = csv_df[(csv_df['type'] == 'c&c')].drop_duplicates(subset='domain name')
     cnc_df["domain name"].replace({np.nan: "unknown"}, inplace=True)
     cnc_df = cnc_df[['ip', 'asn', 'domain name']]
+    cnc_df.rename(columns={'domain name': 'domain_name'}, inplace=True)
     cnc_df['date'] = datetime.today().strftime('%Y-%m-%d')
-    cnc_df = cnc_df[['ip', 'date', 'asn', 'domain name']]
+    cnc_df = cnc_df[['ip', 'date', 'asn', 'domain_name']]
 
     cnc_df.to_csv("cnc.csv", index=False)
 
@@ -109,18 +117,33 @@ def uploaded_file(f):
 
 @app.route('/', methods=["GET", "POST"])
 def upload():
-    global glo_csvfile
+    global glo_csvfile, cookie, zoneh
     if request.method == "GET":
-        return render_template('upload.html', nav_list=nav_list, nav_index=0)
+        captchaNcookie = get_captcha()
+        cookie = captchaNcookie[1]
+        return render_template('upload.html', nav_list=nav_list, nav_index=0, captcha=captchaNcookie[0])
     else:
+
         if 'csvfile' not in request.files:
             flash('Upload failed!', 'error')
             return redirect(url_for("upload"))
+
+        send_log({'text': 'Verifying captcha & getting Zone-h results'})
+
+        zoneh = get_zoneh(request.form['captcha'].upper(), cookie)
+        if zoneh is False:
+            flash('Invalid Captcha', 'error')
+            return redirect(url_for("upload"))
+        elif zoneh == -1:
+            flash('Captcha error, either solve the captcha once at http://zone-h.org/archive or change your public IP before restarting the program', 'error')
+            return redirect(url_for("upload"))
+
         csvfile = request.files['csvfile']
         if check_file(csvfile):
             glo_csvfile = pd.read_csv(csvfile)
             clean_csv(glo_csvfile)
             return redirect(url_for("analyze", domid=1))
+
         else:
             flash('Upload failed!', 'error')
             return redirect(url_for("upload"))
@@ -131,7 +154,11 @@ def analyze(domid):
     print(request.method)
     try:
         if request.method == "GET" and int(domid) > 0:
-            return render_template('analyze.html', nav_list=nav_list, nav_index=1, domain_dictfull=domain_dict,
+            if len(domain_dict) == 0:
+                flash('No processable phishing domains left!', 'error')
+                return redirect(url_for('process'))
+            else:
+                return render_template('analyze.html', nav_list=nav_list, nav_index=1, domain_dictfull=domain_dict,
                                    selected=get_selected(domain_dict), unprocessed=get_unprocessed(domain_dict),
                                    domain_dict=domain_dict[int(domid)-1], dom_count=len(domain_dict), domid=int(domid))
 
@@ -149,6 +176,7 @@ def analyze(domid):
                 return redirect(url_for("analyze", domid=domid))
 
     except (IndexError, TypeError, ValueError) as e:
+        raise e
         print(e)
         flash("Invalid domain ID specified", 'error')
         return redirect(url_for("upload"))
@@ -181,21 +209,21 @@ def recurl(domid):
 def process():
     global domain_dict
     generate_csv(domain_dict)
-    flash("Successfully generated outputs!", "success")
-    return render_template('consolidate.html', nav_list=nav_list, nav_index=2)
+    # reset_instance()
+    return render_template('consolidate.html', nav_list=nav_list, nav_index=2, timestamp=int(time.time()), zoneh=zoneh)
 
-@app.route('/send_file/<file>')
+@app.route('/send_file/<file>/<uuid>')
 @uploaded_file
-def download(file):
+def download(file, uuid):
     if file == "phish":
         return send_file('phish.csv',
                              mimetype='text/csv',
-                             attachment_filename='phish.csv',
+                             attachment_filename='phish-' + uuid +".csv",
                              as_attachment=True)
     elif file == "cnc":
         return send_file('cnc.csv',
                          mimetype='text/csv',
-                         attachment_filename='cnc.csv',
+                         attachment_filename='cnc-' + uuid +".csv",
                          as_attachment=True)
     else:
         return "NO"
