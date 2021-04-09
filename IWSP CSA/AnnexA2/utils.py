@@ -44,22 +44,31 @@ def get_str_ordinal(datestr):
     dt = datetime(*date_time_obj.timetuple()[:3])  # 2013-12-14 00:00:00
     return dt.toordinal()
 
-def generate_csv(dom_dict):
+def generate_csv(dom_dict, zoneh):
+    #Phishing domains generation
     logfile = pd.read_csv("logfile.csv")
     column_names = ["CaseID", "Date", "Abuse Email", "IPAddress", "Domain", "Target", "URL", "Status"]
-    output_df = pd.DataFrame(columns=column_names)
+    phish_df = pd.DataFrame(columns=column_names)
 
     processed_list = [dom for dom in dom_dict if (dom[1].processed and not dom[1].discard)]
 
     for index, domain in enumerate(processed_list):
         # if domain[0] not in logfile['Domain']:
         for url_data in domain[1].output():
-            output_df = output_df.append(url_data, ignore_index=True)
+            phish_df = phish_df.append(url_data, ignore_index=True)
         # else:
         #     continue
 
-    output_df.to_csv("phish.csv", index=False)
-    output_df.to_csv("logfile.csv", mode='a', index=False, header=False)
+    phish_df.to_csv("phish.csv", index=False)
+    phish_df.to_csv("logfile.csv", mode='a', index=False, header=False)
+
+    #Defacement domains generation
+    column_names = ["CaseID", "Date", "Notifier", "Domain", "OS", "IndustrySector", "Organisation", "Mirror", "Platform"]
+    deface_df = pd.DataFrame(columns=column_names)
+
+    for dom in zoneh:
+        deface_df = deface_df.append(dom.output(), ignore_index=True)
+    deface_df.to_csv("deface.csv", index=False)
 
 def filter_log(log, current, days):
     recent_log = log.loc[log['Date'] > get_today_ordinal()-days]

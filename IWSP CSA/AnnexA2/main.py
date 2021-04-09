@@ -3,6 +3,8 @@ from model import get_cnnprediction, get_rfprediction
 from utils import *
 from zoneh import get_zoneh, get_captcha
 
+from zipfile import ZipFile
+
 import pandas as pd
 import numpy as np
 
@@ -202,7 +204,7 @@ def analyze(dom_type, domid):
                 zoneh[int(domid) - 1].informer = request.form['informer']
                 zoneh[int(domid) - 1].system = request.form['system']
                 zoneh[int(domid) - 1].url = request.form['domain']
-                zoneh[int(domid) - 1].server = request.form['server']
+                zoneh[int(domid) - 1].server = request.form['platform']
                 zoneh[int(domid) - 1].org = request.form['org']
                 zoneh[int(domid) - 1].sec = request.form['sec']
                 zoneh[int(domid) - 1].discard = False
@@ -260,26 +262,22 @@ def uploaded(domid):
 @app.route('/consolidate')
 @uploaded_file
 def process():
-    global domain_dict
-    generate_csv(domain_dict)
+    global domain_dict, zoneh
+    generate_csv(domain_dict, zoneh)
     # reset_instance()
     return render_template('consolidate.html', nav_list=nav_list, nav_index=2, timestamp=int(time.time()), zoneh=zoneh)
 
-@app.route('/send_file/<file>/<uuid>')
+@app.route('/send_file/<uuid>')
 @uploaded_file
-def download(file, uuid):
-    if file == "phish":
-        return send_file('phish.csv',
-                             mimetype='text/csv',
-                             attachment_filename='phish-' + uuid +".csv",
-                             as_attachment=True)
-    elif file == "cnc":
-        return send_file('cnc.csv',
-                         mimetype='text/csv',
-                         attachment_filename='cnc-' + uuid +".csv",
+def download(uuid):
+    zipObj = ZipFile('output.zip', 'w')
+    zipObj.write('cnc.csv')
+    zipObj.write('phish.csv')
+    zipObj.write('deface.csv')
+    return send_file('output.csv',
+                         mimetype='application/zip',
+                         attachment_filename='output-' + uuid +".zip",
                          as_attachment=True)
-    else:
-        return "NO"
 
 @socketio.on('connect')
 def sock_conn():

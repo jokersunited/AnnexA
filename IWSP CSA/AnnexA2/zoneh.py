@@ -1,5 +1,6 @@
 import requests
 import base64
+from random import randint
 
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium import webdriver
@@ -7,6 +8,7 @@ import bs4
 from urllib.parse import urlparse
 
 from urlclass import LiveUrl
+from datetime import datetime
 
 from PIL import Image
 import io
@@ -53,6 +55,23 @@ class Zoneh:
 
 
         print(self.informer, self.system, self.url, self.server, self.ip)
+
+    def output(self):
+        cn = ["Date", "Notifier", "Domain", "OS", "IndustrySector", "Organisation", "Mirror", "Platform"]
+
+        case_id = "SingCERT_" + datetime.today().strftime('%Y%m%d') + "-A" + str(randint(100000, 999999))
+
+        out_dict = {}
+        out_dict.update({cn[0]: datetime.today().strftime('%d-%m-%Y')})
+        out_dict.update({cn[1]: self.informer})
+        out_dict.update({cn[2]: self.url})
+        out_dict.update({cn[3]: self.system})
+        out_dict.update({cn[4]: self.sec})
+        out_dict.update({cn[5]: self.org})
+        out_dict.update({cn[6]: self.mirror})
+        out_dict.update({cn[7]: self.server})
+
+        return out_dict
 
     def get_mirror(self):
         resp = requests.get(self.mirror, headers=self.headers)
