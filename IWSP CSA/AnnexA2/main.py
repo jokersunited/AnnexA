@@ -1,7 +1,6 @@
 from urlclass import Url, LiveUrl
 from model import get_cnnprediction, get_rfprediction
 from utils import *
-from zoneh import get_zoneh, get_captcha
 
 import pandas as pd
 import numpy as np
@@ -27,7 +26,6 @@ def reset_instance():
     phish_df = None
     cnc_df = None
     domain_dict = {}
-    zoneh = None
 
 reset_instance()
 
@@ -117,11 +115,9 @@ def uploaded_file(f):
 
 @app.route('/', methods=["GET", "POST"])
 def upload():
-    global glo_csvfile, cookie, zoneh
+    global glo_csvfile, cookie
     if request.method == "GET":
-        captchaNcookie = get_captcha()
-        cookie = captchaNcookie[1]
-        return render_template('upload.html', nav_list=nav_list, nav_index=0, captcha=captchaNcookie[0])
+        return render_template('upload.html', nav_list=nav_list, nav_index=0)
     else:
 
         if 'csvfile' not in request.files:
@@ -129,14 +125,6 @@ def upload():
             return redirect(url_for("upload"))
 
         send_log({'text': 'Verifying captcha & getting Zone-h results'})
-
-        zoneh = get_zoneh(request.form['captcha'].upper(), cookie)
-        if zoneh is False:
-            flash('Invalid Captcha', 'error')
-            return redirect(url_for("upload"))
-        elif zoneh == -1:
-            flash('Captcha error, either solve the captcha once at http://zone-h.org/archive or change your public IP before restarting the program', 'error')
-            return redirect(url_for("upload"))
 
         csvfile = request.files['csvfile']
         if check_file(csvfile):
@@ -210,7 +198,7 @@ def process():
     global domain_dict
     generate_csv(domain_dict)
     # reset_instance()
-    return render_template('consolidate.html', nav_list=nav_list, nav_index=2, timestamp=int(time.time()), zoneh=zoneh)
+    return render_template('consolidate.html', nav_list=nav_list, nav_index=2, timestamp=int(time.time()))
 
 @app.route('/send_file/<file>/<uuid>')
 @uploaded_file

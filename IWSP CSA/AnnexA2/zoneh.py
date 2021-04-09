@@ -100,8 +100,6 @@ def get_zoneh(captcha, cookie):
     print(output_list)
     return output_list
 
-# print(get_zoneh())
-# Zoneh("/mirror/id/34837906")
 
 
 
