@@ -4,6 +4,9 @@ import base64
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium import webdriver
 import bs4
+from urllib.parse import urlparse
+
+from urlclass import LiveUrl
 
 from PIL import Image
 import io
@@ -20,6 +23,7 @@ options.add_argument('ignore-certificate-errors')
 driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
 driver.get(base_url)
 zhe_cookie = driver.get_cookie("ZHE")['value']
+print(zhe_cookie)
 
 class Zoneh:
     def __init__(self, mirror, sess):
@@ -27,22 +31,33 @@ class Zoneh:
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
             'Cookie': sess
-            # This is another valid field
         }
 
-        self.mirror = mirror
+        self.mirror = "http://zone-h.org" + mirror
         self.soup = self.get_mirror()
 
-        self.informer = self.get_data("informer")
-        self.system = self.get_data("system")
-        self.url = self.get_data("url")
-        self.server = self.get_data("server")
-        self.ip = self.get_data("ip")
+        if self.soup is not False:
+            self.url = self.get_data("url")
+
+            self.live = LiveUrl(self.url.split(":")[0] + "://" + urlparse(self.url).netloc)
+            self.processed = False
+            self.discard = False
+
+            self.informer = self.get_data("informer")
+            self.system = self.get_data("system")
+            self.server = self.get_data("server")
+            self.ip = self.get_data("ip")
+            self.org = self.live.title
+            self.sec = ""
+
+
 
         print(self.informer, self.system, self.url, self.server, self.ip)
 
     def get_mirror(self):
-        resp = requests.get("http://zone-h.org" + self.mirror, headers=self.headers)
+        resp = requests.get(self.mirror, headers=self.headers)
+        if b'If you often get this captcha when gathering data' in resp.content:
+            return False
         mirror_soup = bs4.BeautifulSoup(resp.content, features='lxml')
         return mirror_soup
 
@@ -89,6 +104,7 @@ def get_zoneh(captcha, cookie):
     output_list = []
 
     final_resp = requests.post("http://zone-h.org/archive", headers={"Cookie": cookie}, data=data)
+    print(final_resp.content)
     if b'name="archivecaptcha"' in final_resp.content:
         return False
     elif b'If you often get this captcha when gathering data' in final_resp.content:

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+{% include './includes/head.html' %}
+<body>
+
+<div class="container">
+<div id="modal-3" class="modal" data-modal-effect="slide-top">
+  <div class="modal-content">
+    <h2 class="fs-title">Confirm completion?</h2>
+      <h3 class="fs-subtitle">All unprocessed defacement domains will be automatically discarded!</h3>
+
+      <p>Unprocessed Domains:</p>
+      {% if unprocessed|length != 0 %}
+      <p style="color: red;">-
+      {% for udom in unprocessed %}
+
+      {% if loop.index == unprocessed|length %}
+      {{udom[0]}}
+      {% else %}
+        {{udom[0]}},
+          {% endif %}
+
+      {% endfor %}
+      </p>
+      {% else %}
+      <p>- None</p>
+      {% endif %}
+
+<p>Selected Domains:</p>
+      {% if selected|length != 0 %}
+      <p>-
+      {% for sdom in selected %}
+      {% if loop.index == selected|length %}
+      {{sdom[0]}}
+      {% else %}
+        {{sdom[0]}},
+      {% endif %}
+      {% endfor %}
+      </p>
+      {% else %}
+      <p>- None</p>
+      {% endif %}
+      <h3 class="fs-subtitle">Warning: This action is irreversible and will update selected domains to the log file (domains in the logfile will be ignored for the next 3 days)</h3>
+      <div class="modalnav-div">
+                <input type="button" class="modal-btn btn btn-outline-secondary modal-close" value="Back">
+        <a class="modal-btn btn btn btn-outline-secondary" href="/deface/1" >Confirm</a>
+      </div>
+
+  </div>
+</div>
+</div>
+
+<div class="steps">
+    {% include './includes/nav.html' %}
+
+  <!-- USER INFORMATION FIELD SET -->
+  <fieldset>
+      <div class="page-form">
+          {% include './includes/flash.html' %}
+    <h2 class="fs-title">Analyze</h2>
+    <h3 class="fs-subtitle">Determine if website is a valid phish</h3>
+<div class="proceeddiv">
+    <a href="/analyze/phish/1" class="proceedbtn btn-secondary btn-sm" style="float:left;margin-left: 11%;">Re-analyze Phishing Domains</a>
+      <a href="#" class="explanation proceedbtn btn-secondary btn-sm modal-trigger" data-modal-id="modal-3" style="margin-right:0px;">Proceed to Consolidate</a>
+<!--    <button class="explanation btn btn-secondary " >hi</button>&ndash;&gt;-->
+</div>
+
+    <!-- Begin file upload area -->
+      <div class="pagecontainer">
+          <div class="heading">
+              <div class="upperheading">
+                  <div class="dompage">
+                      <div>
+
+                      <button style="outline: none;" class="btn fa fa-eye view-collapse"></button>
+
+                    <span class="domp" style="margin-left:0px; text-align: left;">
+                      Deface Domain {{domid}}/{{dom_count}}
+                  </span>
+
+                      </div>
+                      <div class="dom-nav">
+<!--                                        <a href="#">-->
+<!--                      <i class="fa fa-eye view-icon" title="Switch views"></i>-->
+<!--                  </a>-->
+                      {% for i in range(dom_count) %}
+                      {% if domid != i+1 %}
+
+                      <a href="{{i+1}}">
+                        <div class="view-icon">
+                            <p>{{i+1}}</p>
+
+                      {% else %}
+                          <a>
+                              <div class="view-icon icon-selected">
+                                  {{i+1}}
+                      {% endif %}
+                                    {% if zoneh[i].processed %}
+                                  {% if zoneh[i].discard %}
+                                    <i class="fa fa-close" aria-hidden="true"></i>
+                                  {% else %}
+                                    <i class="fa fa-check" aria-hidden="true"></i>
+                                  {% endif %}
+                                  {% endif %}
+
+                              </div>
+                          </a>
+
+
+                      {% endfor %}
+
+                      </div>
+                  </div>
+
+
+          </div>
+                  <hr>
+                  <img class='screenshot' src="{{domain_dict.live.screenshot}}" />
+            <h2>{{domain_dict.url}}</h2>
+              </div>
+      <form id="analysis-form" class="analysis-form" enctype="multipart/forfm-data" action="{{dom_id}}" method="post">
+     <label for="informer">Informer:</label>
+    <input name="informer" type="text" value="{{domain_dict.informer}}">
+     <label for="domain">Domain:</label>
+    <input name="domain" type="text" value="{{domain_dict.url}}">
+    <label for="mirror">Mirror:</label>
+    <input name="mirror" type="text" value="{{domain_dict.mirror}}">
+    <label for="system">OS:</label>
+    <input name="system" type="text" value="{{domain_dict.system}}">
+  <label for="platform]">Platform:</label>
+    <input name="platform" type="text" value="{{domain_dict.server}}">
+    <label for="sec">Industry Sector:</label>
+    <input name="sec" type="text" value="{{domain_dict.sec}}">
+    <label for="org">Organisation:</label>
+    <input name="org" type="text" value="{{domain_dict.org}}">
+    <br><br>
+    <a href="/discard/deface/{{domid}}"><input id="discard" class="btn btn-danger" style="float: left; width: 20% !important; color: white;" value="Discard"></a>
+  <input class="btn btn-primary" style="margin-left: 80%; width: 20% !important; color: white;" type="submit" value="Submit">
+
+</form>
+
+          </div>
+
+      </div>
+      </div>
+
+
+
+  <!-- End file upload area -->
+    <div id="loader">
+      <div id="loadspinner"></div>
+      <p id="loadtext"></p>
+    </div>
+  </fieldset>
+
+
+</div>
+</body>
+</html>

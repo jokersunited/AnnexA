@@ -20,7 +20,7 @@ app = Flask(__name__,
 app.config['SECRET_KEY'] = 'annexA'
 socketio = SocketIO(app, async_mode="threading")
 
-nav_list = ["Upload", "Analyze", "Consolidate", "Export"]
+nav_list = ["Upload", "Phishing", "Defacement", "Consolidate"]
 glo_csvfile = None
 
 def reset_instance():
@@ -39,6 +39,12 @@ def get_unprocessed(dom_dict):
 
 def get_selected(dom_dict):
     return [[index+1, dom] for index, dom in enumerate(dom_dict) if (dom[1].processed and not dom[1].discard)]
+
+def get_unprocessed_zoneh(zoneh):
+    return [[index+1, dom] for index, dom in enumerate(zoneh) if not dom.processed]
+
+def get_selected_zoneh(zoneh):
+    return [[index+1, dom] for index, dom in enumerate(zoneh) if (dom.processed and not dom.discard)]
 
 def send_log(msg):
     socketio.send(msg)
@@ -131,49 +137,81 @@ def upload():
         send_log({'text': 'Verifying captcha & getting Zone-h results'})
 
         zoneh = get_zoneh(request.form['captcha'].upper(), cookie)
+        print(zoneh)
         if zoneh is False:
             flash('Invalid Captcha', 'error')
             return redirect(url_for("upload"))
         elif zoneh == -1:
-            flash('Captcha error, either solve the captcha once at http://zone-h.org/archive or change your public IP before restarting the program', 'error')
+            flash('Captcha error, please solve the captcha once at http://zone-h.org/archive before proceeding', 'error')
             return redirect(url_for("upload"))
+        else:
+            for dom in zoneh:
+                if dom.soup is False:
+                    flash(
+                        'Captcha error, please the captcha for any mirror links at http://zone-h.org/archive before proceeding',
+                        'error')
+                    return redirect(url_for("upload"))
 
         csvfile = request.files['csvfile']
         if check_file(csvfile):
             glo_csvfile = pd.read_csv(csvfile)
             clean_csv(glo_csvfile)
-            return redirect(url_for("analyze", domid=1))
+            return redirect(url_for("analyze", domid=1, dom_type="phish"))
 
         else:
             flash('Upload failed!', 'error')
             return redirect(url_for("upload"))
 
-@app.route('/analyze/<domid>', methods=["GET", "POST"])
+@app.route('/analyze/<dom_type>/<domid>', methods=["GET", "POST"])
 @uploaded_file
-def analyze(domid):
+def analyze(dom_type, domid):
     print(request.method)
     try:
         if request.method == "GET" and int(domid) > 0:
-            if len(domain_dict) == 0:
-                flash('No processable phishing domains left!', 'error')
-                return redirect(url_for('process'))
-            else:
-                return render_template('analyze.html', nav_list=nav_list, nav_index=1, domain_dictfull=domain_dict,
-                                   selected=get_selected(domain_dict), unprocessed=get_unprocessed(domain_dict),
-                                   domain_dict=domain_dict[int(domid)-1], dom_count=len(domain_dict), domid=int(domid))
+            if dom_type == "phish":
+                if len(domain_dict) == 0:
+                    flash('No processable phishing domains left!', 'error')
+                    return redirect(url_for('process'))
+                else:
+                    return render_template('analyze.html', nav_list=nav_list, nav_index=1, domain_dictfull=domain_dict,
+                                       selected=get_selected(domain_dict), unprocessed=get_unprocessed(domain_dict),
+                                       domain_dict=domain_dict[int(domid)-1], dom_count=len(domain_dict), domid=int(domid))
+            if dom_type == "deface":
+                if len(zoneh) == 0:
+                    flash('No processable defacement domains left!', 'error')
+                    return redirect(url_for('process'))
+                else:
+                    return render_template('deface.html', nav_list=nav_list, nav_index=2, zoneh=zoneh,
+                                           selected=get_selected_zoneh(zoneh), unprocessed=get_unprocessed_zoneh(zoneh),
+                                           domain_dict=zoneh[int(domid) - 1], dom_count=len(zoneh), domid=int(domid))
 
         elif request.method == "POST" and int(domid) > 0:
-            domain_dict[int(domid) - 1][1].final_ip = request.form['ip']
-            domain_dict[int(domid) - 1][1].final_domain = request.form['domain']
-            domain_dict[int(domid) - 1][1].abuse = request.form['email']
-            domain_dict[int(domid) - 1][1].spoof = request.form['target']
-            domain_dict[int(domid) - 1][1].discard = False
-            domain_dict[int(domid)-1][1].processed = True
-            flash("Succesfully Updated!", 'success')
-            if int(domid) != len(domain_dict):
-                return redirect(url_for("analyze", domid=int(domid) + 1))
-            else:
-                return redirect(url_for("analyze", domid=domid))
+            if dom_type == "phish":
+                domain_dict[int(domid) - 1][1].final_ip = request.form['ip']
+                domain_dict[int(domid) - 1][1].final_domain = request.form['domain']
+                domain_dict[int(domid) - 1][1].abuse = request.form['email']
+                domain_dict[int(domid) - 1][1].spoof = request.form['target']
+                domain_dict[int(domid) - 1][1].discard = False
+                domain_dict[int(domid)-1][1].processed = True
+                flash("Succesfully Updated!", 'success')
+                if int(domid) != len(domain_dict):
+                    return redirect(url_for("analyze", domid=int(domid) + 1, dom_type="phish"))
+                else:
+                    return redirect(url_for("analyze", domid=domid, dom_type="phish"))
+            elif dom_type == "deface":
+                zoneh[int(domid) - 1].informer = request.form['informer']
+                zoneh[int(domid) - 1].system = request.form['system']
+                zoneh[int(domid) - 1].url = request.form['domain']
+                zoneh[int(domid) - 1].server = request.form['server']
+                zoneh[int(domid) - 1].org = request.form['org']
+                zoneh[int(domid) - 1].sec = request.form['sec']
+                zoneh[int(domid) - 1].discard = False
+                zoneh[int(domid)-1].processed = True
+                flash("Succesfully Updated!", 'success')
+                if int(domid) != len(zoneh):
+                    return redirect(url_for("analyze", domid=int(domid) + 1, dom_type="deface"))
+                else:
+                    return redirect(url_for("analyze", domid=domid, dom_type="deface"))
 
     except (IndexError, TypeError, ValueError) as e:
         raise e
@@ -185,16 +223,25 @@ def analyze(domid):
         flash("Invalid request received", 'error')
         return redirect(url_for("upload"))
 
-@app.route('/discard/<domid>', methods=["GET"])
+@app.route('/discard/<dom_type>/<domid>', methods=["GET"])
 @uploaded_file
-def discard(domid):
-    domain_dict[int(domid) - 1][1].processed = True
-    domain_dict[int(domid)-1][1].discard = True
-    flash("Succesfully Discarded!", 'success')
-    if int(domid) != len(domain_dict):
-        return redirect(url_for("analyze", domid=int(domid)+1))
-    else:
-        return redirect(url_for("analyze", domid=domid))
+def discard(dom_type, domid):
+    if dom_type == "phish":
+        domain_dict[int(domid) - 1][1].processed = True
+        domain_dict[int(domid)-1][1].discard = True
+        flash("Succesfully Discarded!", 'success')
+        if int(domid) != len(domain_dict):
+            return redirect(url_for("analyze", domid=int(domid)+1, dom_type="phish"))
+        else:
+            return redirect(url_for("analyze", domid=domid, dom_type="phish"))
+    elif dom_type == "deface":
+        zoneh[int(domid) - 1].processed = True
+        zoneh[int(domid) - 1].discard = True
+        flash("Succesfully Discarded!", 'success')
+        if int(domid) != len(zoneh):
+            return redirect(url_for("analyze", domid=int(domid) + 1, dom_type="deface"))
+        else:
+            return redirect(url_for("analyze", domid=domid, dom_type="deface"))
 
 @app.route('/recurl/<domid>', methods=["GET"])
 @uploaded_file
@@ -203,6 +250,12 @@ def recurl(domid):
     domain_dict[int(domid) - 1][1].live = LiveUrl(request.args['url'])
     flash("Successfully re-analzyed specified URL", "success")
     return redirect(url_for("analyze", domid=domid))
+
+@app.route('/deface/<domid>', methods=["GET", "POST"])
+@uploaded_file
+def uploaded(domid):
+    return render_template('deface.html', nav_list=nav_list, nav_index=2, zoneh=zoneh, selected=get_selected_zoneh(zoneh), unprocessed=get_unprocessed_zoneh(zoneh),
+                                   domain_dict=zoneh[int(domid)-1], dom_count=len(zoneh), domid=int(domid))
 
 @app.route('/consolidate')
 @uploaded_file
