@@ -115,7 +115,12 @@
 
           </div>
                   <hr>
-                  <img class='screenshot' src="{{domain_dict.live.screenshot}}" />
+
+                  {% if domain_dict.screenshot != false %}
+                  <img class='screenshot' src="{{domain_dict.screenshot}}" />
+                  {% else %}
+                  <p>No image available!</p>
+                  {% endif %}
             <h2>{{domain_dict.url}}</h2>
               </div>
       <form id="analysis-form" class="analysis-form" enctype="multipart/forfm-data" action="{{dom_id}}" method="post">
@@ -127,7 +132,7 @@
     <input name="mirror" type="text" value="{{domain_dict.mirror}}">
     <label for="system">OS:</label>
     <input name="system" type="text" value="{{domain_dict.system}}">
-  <label for="platform]">Platform:</label>
+  <label for="platform">Platform:</label>
     <input name="platform" type="text" value="{{domain_dict.server}}">
     <label for="sec">Industry Sector:</label>
     <input name="sec" type="text" value="{{domain_dict.sec}}">

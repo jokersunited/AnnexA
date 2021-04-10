@@ -63,10 +63,12 @@ def generate_csv(dom_dict, zoneh):
     phish_df.to_csv("logfile.csv", mode='a', index=False, header=False)
 
     #Defacement domains generation
-    column_names = ["CaseID", "Date", "Notifier", "Domain", "OS", "IndustrySector", "Organisation", "Mirror", "Platform"]
+    column_names = ["Date", "Notifier", "Domain", "OS", "IndustrySector", "Organisation", "Mirror", "Platform"]
     deface_df = pd.DataFrame(columns=column_names)
 
-    for dom in zoneh:
+    deface_processed_list = [dom for dom in zoneh if (dom.processed and not dom.discard)]
+
+    for dom in deface_processed_list:
         deface_df = deface_df.append(dom.output(), ignore_index=True)
     deface_df.to_csv("deface.csv", index=False)
 

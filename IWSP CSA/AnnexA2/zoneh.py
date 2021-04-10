@@ -15,23 +15,38 @@ import io
 
 import time
 
-#Initialize the selenium instance of grab the initial anti-crawling ZHE cookie
-base_url = "http://zone-h.org/"
-options = webdriver.ChromeOptions()
-user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'
-options.add_argument(f'user-agent={user_agent}')
-options.add_argument('--headless')
-options.add_argument('ignore-certificate-errors')
-driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
-driver.get(base_url)
-zhe_cookie = driver.get_cookie("ZHE")['value']
-print(zhe_cookie)
+# Initialize the selenium instance of grab the initial anti-crawling ZHE cookie
+# base_url = "http://zone-h.org/"
+# options = webdriver.ChromeOptions()
+# user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'
+# options.add_argument(f'user-agent={user_agent}')
+# options.add_argument('--headless')
+# options.add_argument('ignore-certificate-errors')
+# driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+# driver.get(base_url)
+#
+#
+# def get_session():
+#     resp = requests.get("http://zone-h.org/captcha.py")
+#
+#     sess = resp.headers['Set-Cookie'].split(";")[0]
+#     return sess
+#
+#
+# sess = get_session()
+# zhe_cookie = driver.get_cookie("ZHE")['value']
+#
+# cookie = sess + "; " + "ZHE=" + zhe_cookie
+# print(zhe_cookie)
+# print(sess)
+# print(cookie)
+
 
 class Zoneh:
     def __init__(self, mirror, sess):
 
         self.headers = {
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36',
             'Cookie': sess
         }
 
@@ -42,6 +57,7 @@ class Zoneh:
             self.url = self.get_data("url")
 
             self.live = LiveUrl(self.url.split(":")[0] + "://" + urlparse(self.url).netloc)
+
             self.processed = False
             self.discard = False
 
@@ -49,10 +65,15 @@ class Zoneh:
             self.system = self.get_data("system")
             self.server = self.get_data("server")
             self.ip = self.get_data("ip")
-            self.org = self.live.title
+
+            if self.live.dns is False or self.live.access is False:
+                self.org = ""
+                self.screenshot = False
+            else:
+                self.org = self.live.title
+                self.screenshot = self.live.screenshot
+
             self.sec = ""
-
-
 
         print(self.informer, self.system, self.url, self.server, self.ip)
 
@@ -96,34 +117,40 @@ class Zoneh:
             print(e)
             return False
 
-def get_captcha():
-    resp = requests.get("http://zone-h.org/captcha.py")
 
-    cookie = resp.headers['Set-Cookie'].split(";")[0] + "; " + "ZHE=" + zhe_cookie + ";"
+def get_captcha():
+    resp = requests.get("http://zone-h.org/captcha.py", headers={"Cookie": None})
+
     b64_img = base64.b64encode(resp.content)
 
     png_captcha = "data:image/png;base64," + b64_img.decode()
-    return png_captcha, cookie
+    return png_captcha
 
-def get_zoneh(captcha, cookie):
+
+def get_zoneh(cookie):
+
+    print(cookie)
 
     data = {
-        "defacer": "",
+        "notifier": "",
         "domain": ".sg",
         "filter_date_select": "week",
-        "filter_date_y": "",
-        "filter_date_m": "",
-        "filter_date_d": "",
         "filter": "1",
         "fulltext": "on",
-        "published": "",
-        "archivecaptcha": captcha
+    }
+
+    headers = {
+        # 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36',
+        "Host": "zone-h.org",
+        "Origin": "http://zone-h.org",
+        "Referer": "http://zone-h.org/archive",
+        "Cookie": cookie,
+
     }
 
     output_list = []
 
-    final_resp = requests.post("http://zone-h.org/archive", headers={"Cookie": cookie}, data=data)
-    print(final_resp.content)
+    final_resp = requests.post("http://zone-h.org/archive", headers=headers, data=data)
     if b'name="archivecaptcha"' in final_resp.content:
         return False
     elif b'If you often get this captcha when gathering data' in final_resp.content:
@@ -132,15 +159,10 @@ def get_zoneh(captcha, cookie):
     for entry in zoneh_soup.find_all("tr")[1:-2]:
         output_list.append(Zoneh(entry.find_all("td")[-1].find('a').get('href'), cookie))
 
-    print(output_list)
     return output_list
+
+
+
 
 # print(get_zoneh())
 # Zoneh("/mirror/id/34837906")
-
-
-
-
-
-
-

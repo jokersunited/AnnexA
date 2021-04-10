@@ -34,7 +34,6 @@ def reset_instance():
 reset_instance()
 
 sock_id = None
-cookie = None
 
 def get_unprocessed(dom_dict):
     return [[index+1, dom] for index, dom in enumerate(dom_dict) if not dom[1].processed]
@@ -59,10 +58,10 @@ def clean_csv(csv_df):
 
     cnc_df = csv_df[(csv_df['type'] == 'c&c')].drop_duplicates(subset='domain name')
     cnc_df["domain name"].replace({np.nan: "unknown"}, inplace=True)
-    cnc_df = cnc_df[['ip', 'asn', 'domain name']]
+    cnc_df = cnc_df[['ip', 'as name', 'domain name']]
     cnc_df.rename(columns={'domain name': 'domain_name'}, inplace=True)
     cnc_df['date'] = datetime.today().strftime('%Y-%m-%d')
-    cnc_df = cnc_df[['ip', 'date', 'asn', 'domain_name']]
+    cnc_df = cnc_df[['ip', 'date', 'as name', 'domain_name']]
 
     cnc_df.to_csv("cnc.csv", index=False)
 
@@ -125,21 +124,25 @@ def uploaded_file(f):
 
 @app.route('/', methods=["GET", "POST"])
 def upload():
-    global glo_csvfile, cookie, zoneh
+    global glo_csvfile, zoneh
     if request.method == "GET":
-        captchaNcookie = get_captcha()
-        cookie = captchaNcookie[1]
-        return render_template('upload.html', nav_list=nav_list, nav_index=0, captcha=captchaNcookie[0])
+        return render_template('upload.html', nav_list=nav_list, nav_index=0)
     else:
 
+        cookie = "PHPSESSID=" + request.form['php'] + "; ZHE=" + request.form['zhe']
         if 'csvfile' not in request.files:
             flash('Upload failed!', 'error')
             return redirect(url_for("upload"))
 
         send_log({'text': 'Verifying captcha & getting Zone-h results'})
 
-        zoneh = get_zoneh(request.form['captcha'].upper(), cookie)
-        print(zoneh)
+        try:
+            zoneh = get_zoneh(cookie)
+        except Exception as e:
+            raise e
+            flash('Unknown error: ' + str(e) + " please try again.", 'error')
+            return redirect(url_for("upload"))
+        # print(zoneh.decode())
         if zoneh is False:
             flash('Invalid Captcha', 'error')
             return redirect(url_for("upload"))
@@ -270,11 +273,11 @@ def process():
 @app.route('/send_file/<uuid>')
 @uploaded_file
 def download(uuid):
-    zipObj = ZipFile('output.zip', 'w')
-    zipObj.write('cnc.csv')
-    zipObj.write('phish.csv')
-    zipObj.write('deface.csv')
-    return send_file('output.csv',
+    with ZipFile('output.zip', 'w') as zipObj:
+        zipObj.write('cnc.csv')
+        zipObj.write('phish.csv')
+        zipObj.write('deface.csv')
+    return send_file('output.zip',
                          mimetype='application/zip',
                          attachment_filename='output-' + uuid +".zip",
                          as_attachment=True)
