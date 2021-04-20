@@ -1,6 +1,9 @@
 <img class='screenshot' src="{{domain_dict[1].live.screenshot}}" />
             <h2>{{domain_dict[0]}}</h2>
             <h3 class="fs-subtitle">
+                <b>{{ domain_dict[1].live.url_str }}</b> (Current page)
+            </h3>
+            <h3 class="fs-subtitle">
                 {% for ip in domain_dict[1].ip %}
                 - {{ip}} <br>
                 {% endfor %}

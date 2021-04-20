@@ -29,6 +29,9 @@ $(document).ready(function() {
         if (data.prog > 10){
             $('.progress-bar').css("width", data.prog + "%")
         }
+        else {
+            $('.progress-bar').css("width", "10%")
+        }
     }
 
     });

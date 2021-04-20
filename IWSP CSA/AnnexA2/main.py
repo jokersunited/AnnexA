@@ -12,6 +12,8 @@ import requests
 import bs4
 
 import time
+from timeit import default_timer as timer
+from datetime import timedelta
 
 from functools import wraps
 from flask import Flask, render_template, request, flash, redirect, url_for, send_file
@@ -102,6 +104,8 @@ def clean_csv(csv_df):
 
     domain_dict = {}
 
+    send_log({'text': 'Processing CnC'})
+
     cnc_df = csv_df[(csv_df['type'] == 'c&c')].drop_duplicates(subset='domain name')
     cnc_df["domain name"].replace({np.nan: "unknown"}, inplace=True)
     cnc_df = cnc_df[['ip', 'as name', 'domain name']]
@@ -132,6 +136,8 @@ def clean_csv(csv_df):
         else:
             domain_dict[row[6]].add_url(url)
             domain_dict[row[6]].add_ip(row.ip)
+
+    send_log({'text': 'Processing Phishing', 'prog': 0})
 
     down_list = []
     dup_list = []
@@ -175,6 +181,7 @@ def upload():
     if request.method == "GET":
         return render_template('upload.html', nav_list=nav_list, nav_index=0)
     else:
+        start = timer()
         if 'csvfile' not in request.files:
             flash('Upload failed!', 'error')
             return redirect(url_for("upload"))
@@ -183,7 +190,7 @@ def upload():
             zoneh = []
         else:
             cookie = "PHPSESSID=" + request.form['php'] + "; ZHE=" + request.form['zhe']
-            send_log({'text': 'Verifying captcha & getting Zone-h results'})
+            send_log({'deface': 'Verifying captcha & getting Zone-h results'})
 
             try:
                 zoneh = get_zoneh(cookie)
@@ -211,6 +218,8 @@ def upload():
         if check_file(csvfile):
             glo_csvfile = pd.read_csv(csvfile)
             clean_csv(glo_csvfile)
+            end = timer()
+            print("\n==== Total processing time: " + str(timedelta(seconds=end - start)) + " ====\n")
             return redirect(url_for("analyze", domid=1, dom_type="phish"))
 
         else:
@@ -302,7 +311,7 @@ def recurl(domid):
     send_log({'text': 'Re-analyzing - ' + request.args['url']})
     domain_dict[int(domid) - 1][1].live = LiveUrl(request.args['url'])
     flash("Successfully re-analzyed specified URL", "success")
-    return redirect(url_for("analyze", domid=domid))
+    return redirect(url_for("analyze", domid=domid, dom_type="phish"))
 
 @app.route('/consolidate')
 @uploaded_file

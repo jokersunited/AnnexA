@@ -13,6 +13,8 @@ from bs4 import BeautifulSoup
 from ocspchecker import ocspchecker
 from urllib.parse import urlparse
 
+import requests
+
 def get_status(logs):
     """
     Extract page responses form selenium logs
@@ -237,6 +239,7 @@ class LiveUrl(Url):
 
         print("\n[*] Getting info for " + self.url_str)
         self.dns = self.get_dns()
+        # self.req = self.get_live()
 
         self.link_dict = None
         self.uniq_dom = None
@@ -339,40 +342,47 @@ class LiveUrl(Url):
 
     # ======================= Live Features ========================
 
+    def get_live(self):
+        try:
+            requests.get(self.url)
+        except Exception as e:
+            return False
+
+
     def get_dns(self):
         try:
             addr_info = socket.getaddrinfo(self.urlparse.netloc, None)
             # print(addr_info)
+            return True
         except socket.gaierror:
             return False
-        else:
-            return True
+
 
     def get_linkperc(self, link):
 
-        if self.link_count != 0:
-            print("\n===== Hyperlink Info =====")
-            print("Total links: " + str(self.link_count))
-            print("\nloc %:" + str(len(self.link_dict['loc']) / self.link_count * 100))
-            print("ext %:" + str(len(self.link_dict['ext']) / self.link_count * 100))
-            print("static %:" + str(len(self.link_dict['static']) / self.link_count * 100))
-
-            if len(self.uniq_dom.keys()) > 0:
-                print("\nUnique external domains: ")
-                for key in self.uniq_dom.keys():
-                    print("- " + key)
-            if len(self.link_dict['loc']) > 0:
-                print("\nUnique local links %: " + str(self.get_uniqlocal() * 100))
-            else:
-                print("\nNo Local Links!")
-
-            print("\n===== Potential Spoof Domain Scores =====")
-            print(self.spoof.items())
-            for key, value in self.spoof.items():
-                if value > 0.4: print(key + ": " + str(value))
-
-        else:
-            print("\nNo hyperlinks on page!")
+        # if self.link_count != 0:
+        #     print("\n===== Hyperlink Info =====")
+        #     print("Total links: " + str(self.link_count))
+        #     print("\nloc %:" + str(len(self.link_dict['loc']) / self.link_count * 100))
+        #     print("ext %:" + str(len(self.link_dict['ext']) / self.link_count * 100))
+        #     print("static %:" + str(len(self.link_dict['static']) / self.link_count * 100))
+        #
+        #     if len(self.uniq_dom.keys()) > 0:
+        #         print("\nUnique external domains: ")
+        #         for key in self.uniq_dom.keys():
+        #             print("- " + key)
+        #     if len(self.link_dict['loc']) > 0:
+        #         print("\nUnique local links %: " + str(self.get_uniqlocal() * 100))
+        #     else:
+        #         print("\nNo Local Links!")
+        #
+        #     print("\n===== Potential Spoof Domain Scores =====")
+        #     print(self.spoof.items())
+        #     for key, value in self.spoof.items():
+        #         if value > 0.4: print(key + ": " + str(value))
+        #
+        # else:
+        #     print("\nNo hyperlinks on page!")
 
         if self.link_count > 0:
             return str(int(len(self.link_dict[link]) / self.link_count * 100))+"%"
