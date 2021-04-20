@@ -1,12 +1,15 @@
 from urlclass import Url, LiveUrl
 from model import get_cnnprediction, get_rfprediction
 from utils import *
-from zoneh import get_zoneh, get_captcha
+from zoneh import Zoneh
 
 from zipfile import ZipFile
 
 import pandas as pd
 import numpy as np
+
+import requests
+import bs4
 
 import time
 
@@ -35,6 +38,49 @@ reset_instance()
 
 sock_id = None
 
+#Function to get zoneh content for today using the cookies sent by the user
+def get_zoneh(cookie):
+    #Post request parameters to send to zoneh
+    data = {
+        "notifier": "",
+        "domain": ".sg",
+        "filter_date_select": "today",
+        "filter": "1",
+        "fulltext": "on",
+    }
+
+    #Initialise headers to send to zoneh along with session cookie
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36',
+        "Host": "zone-h.org",
+        "Origin": "http://zone-h.org",
+        "Referer": "http://zone-h.org/archive",
+        "Cookie": cookie,
+
+    }
+
+    output_list = []
+
+    #
+    final_resp = requests.post("http://zone-h.org/archive", headers=headers, data=data)
+    if b'name="archivecaptcha"' in final_resp.content:
+        return False
+    elif b'If you often get this captcha when gathering data' in final_resp.content:
+        return False
+    zoneh_soup = bs4.BeautifulSoup(final_resp.content, features='lxml')
+
+    #For each entry, extract mirror link and create zoneh object saved into a list
+    for index, entry in enumerate(zoneh_soup.find_all("tr")[1:-2]):
+        zoneh_obj = Zoneh(entry.find_all("td")[-1].find('a').get('href'), cookie)
+        output_list.append(zoneh_obj)
+        send_log({'deface': 'Processing Defacement - Obtained information for ' + zoneh_obj.url, 'prog': (index+1)/len(zoneh_soup.find_all("tr")[1:-2])*100})
+
+    time.sleep(0.5)
+    send_log({'deface': 'Processing Defacement - Completed! ',
+              'prog': 0})
+    time.sleep(0.5)
+    return output_list
+
 def get_unprocessed(dom_dict):
     return [[index+1, dom] for index, dom in enumerate(dom_dict) if not dom[1].processed]
 
@@ -60,8 +106,9 @@ def clean_csv(csv_df):
     cnc_df["domain name"].replace({np.nan: "unknown"}, inplace=True)
     cnc_df = cnc_df[['ip', 'as name', 'domain name']]
     cnc_df.rename(columns={'domain name': 'domain_name'}, inplace=True)
+    cnc_df.rename(columns={'as name': 'asn'}, inplace=True)
     cnc_df['date'] = datetime.today().strftime('%Y-%m-%d')
-    cnc_df = cnc_df[['ip', 'date', 'as name', 'domain_name']]
+    cnc_df = cnc_df[['ip', 'date', 'asn', 'domain_name']]
 
     cnc_df.to_csv("cnc.csv", index=False)
 
@@ -89,14 +136,14 @@ def clean_csv(csv_df):
     down_list = []
     dup_list = []
     for index, value in enumerate(domain_dict.values()):
-        send_log({'text': 'Processing - ' + str(value.domain), 'prog': int((index+1)/len(domain_dict.values())*100)})
+        send_log({'text': 'Processing Phishing - ' + str(value.domain), 'prog': int((index+1)/len(domain_dict.values())*100)})
         value.url.sort(key=lambda x: len(x.url_str))
         for url in value.url:
             value.rf += get_rfprediction(url)
             value.cnn += get_cnnprediction(url)
         value.avg_res('rf')
         value.avg_res('cnn')
-        send_log({'text': 'Analyzing - ' + str(value.url[0].url_str)})
+        send_log({'text': 'Processing Phishing - Analyzing ' + str(value.url[0].url_str)})
         value.setlive(LiveUrl(value.url[0].url_str))
 
         if not (value.live.access is False or value.live.dns is False):
@@ -128,34 +175,37 @@ def upload():
     if request.method == "GET":
         return render_template('upload.html', nav_list=nav_list, nav_index=0)
     else:
-
-        cookie = "PHPSESSID=" + request.form['php'] + "; ZHE=" + request.form['zhe']
         if 'csvfile' not in request.files:
             flash('Upload failed!', 'error')
             return redirect(url_for("upload"))
 
-        send_log({'text': 'Verifying captcha & getting Zone-h results'})
-
-        try:
-            zoneh = get_zoneh(cookie)
-        except Exception as e:
-            raise e
-            flash('Unknown error: ' + str(e) + " please try again.", 'error')
-            return redirect(url_for("upload"))
-        # print(zoneh.decode())
-        if zoneh is False:
-            flash('Invalid Captcha', 'error')
-            return redirect(url_for("upload"))
-        elif zoneh == -1:
-            flash('Captcha error, please solve the captcha once at http://zone-h.org/archive before proceeding', 'error')
-            return redirect(url_for("upload"))
+        if request.form['php'] == "" and request.form['zhe'] == "":
+            zoneh = []
         else:
-            for dom in zoneh:
-                if dom.soup is False:
-                    flash(
-                        'Captcha error, please the captcha for any mirror links at http://zone-h.org/archive before proceeding',
-                        'error')
-                    return redirect(url_for("upload"))
+            cookie = "PHPSESSID=" + request.form['php'] + "; ZHE=" + request.form['zhe']
+            send_log({'text': 'Verifying captcha & getting Zone-h results'})
+
+            try:
+                zoneh = get_zoneh(cookie)
+            except Exception as e:
+                flash('Unknown error: ' + str(e) + " please try again.", 'error')
+                return redirect(url_for("upload"))
+
+            if zoneh is False:
+                flash('Invalid Cookie', 'error')
+                return redirect(url_for("upload"))
+            else:
+                for dom in zoneh:
+                    if dom.soup is False:
+                        flash(
+                            'Captcha error, please the captcha for any mirror links at http://zone-h.org/archive before proceeding',
+                            'error')
+                        return redirect(url_for("upload"))
+
+
+
+
+
 
         csvfile = request.files['csvfile']
         if check_file(csvfile):
@@ -175,15 +225,15 @@ def analyze(dom_type, domid):
         if request.method == "GET" and int(domid) > 0:
             if dom_type == "phish":
                 if len(domain_dict) == 0:
-                    flash('No processable phishing domains left!', 'error')
-                    return redirect(url_for('process'))
+                    flash('Phishing step skipped as no phishing domains recorded!', 'success')
+                    return redirect(url_for('analyze', dom_type="deface", domid=1))
                 else:
                     return render_template('analyze.html', nav_list=nav_list, nav_index=1, domain_dictfull=domain_dict,
                                        selected=get_selected(domain_dict), unprocessed=get_unprocessed(domain_dict),
                                        domain_dict=domain_dict[int(domid)-1], dom_count=len(domain_dict), domid=int(domid))
             if dom_type == "deface":
                 if len(zoneh) == 0:
-                    flash('No processable defacement domains left!', 'error')
+                    flash('Defacement step skipped as no defacement domains recorded!', 'success')
                     return redirect(url_for('process'))
                 else:
                     return render_template('deface.html', nav_list=nav_list, nav_index=2, zoneh=zoneh,
@@ -219,8 +269,6 @@ def analyze(dom_type, domid):
                     return redirect(url_for("analyze", domid=domid, dom_type="deface"))
 
     except (IndexError, TypeError, ValueError) as e:
-        raise e
-        print(e)
         flash("Invalid domain ID specified", 'error')
         return redirect(url_for("upload"))
 
@@ -255,12 +303,6 @@ def recurl(domid):
     domain_dict[int(domid) - 1][1].live = LiveUrl(request.args['url'])
     flash("Successfully re-analzyed specified URL", "success")
     return redirect(url_for("analyze", domid=domid))
-
-@app.route('/deface/<domid>', methods=["GET", "POST"])
-@uploaded_file
-def uploaded(domid):
-    return render_template('deface.html', nav_list=nav_list, nav_index=2, zoneh=zoneh, selected=get_selected_zoneh(zoneh), unprocessed=get_unprocessed_zoneh(zoneh),
-                                   domain_dict=zoneh[int(domid)-1], dom_count=len(zoneh), domid=int(domid))
 
 @app.route('/consolidate')
 @uploaded_file

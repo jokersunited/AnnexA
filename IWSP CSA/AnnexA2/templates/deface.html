@@ -40,7 +40,6 @@
       {% else %}
       <p>- None</p>
       {% endif %}
-      <h3 class="fs-subtitle">Warning: This action is irreversible and will update selected domains to the log file (domains in the logfile will be ignored for the next 3 days)</h3>
       <div class="modalnav-div">
                 <input type="button" class="modal-btn btn btn-outline-secondary modal-close" value="Back">
         <a class="modal-btn btn btn btn-outline-secondary" href="/consolidate" >Confirm</a>
@@ -57,8 +56,8 @@
   <fieldset>
       <div class="page-form">
           {% include './includes/flash.html' %}
-    <h2 class="fs-title">Analyze</h2>
-    <h3 class="fs-subtitle">Determine if website is a valid phish</h3>
+    <h2 class="fs-title">Defacement</h2>
+    <h3 class="fs-subtitle">Analyze defacement domains</h3>
 <div class="proceeddiv">
     <a href="/analyze/phish/1" class="proceedbtn btn-secondary btn-sm" style="float:left;margin-left: 11%;">Re-analyze Phishing Domains</a>
       <a href="#" class="explanation proceedbtn btn-secondary btn-sm modal-trigger" data-modal-id="modal-3" style="margin-right:0px;">Proceed to Consolidate</a>
@@ -75,7 +74,7 @@
                       <button style="outline: none;" class="btn fa fa-eye view-collapse"></button>
 
                     <span class="domp" style="margin-left:0px; text-align: left;">
-                      Deface Domain {{domid}}/{{dom_count}}
+                      Defacement Domain {{domid}}/{{dom_count}}
                   </span>
 
                       </div>
@@ -116,12 +115,27 @@
           </div>
                   <hr>
 
-                  {% if domain_dict.screenshot != false %}
-                  <img class='screenshot' src="{{domain_dict.screenshot}}" />
+    <div class="row">
+                  <div class="col-sm-6">
+                       {% if domain_dict.screenshot != false %}
+                      <h3>Home Page</h3>
+                      <img class='defacescreenshot' src="{{domain_dict.screenshot}}" />
                   {% else %}
                   <p>No image available!</p>
-                  {% endif %}
-            <h2>{{domain_dict.url}}</h2>
+                      {% endif %}
+                  </div>
+
+                    <div class="col-sm-6">
+                         {% if domain_dict.defacescreenshot != false %}
+                        <h3>Defacement Page</h3>
+                      <img class='defacescreenshot' src="{{domain_dict.defacescreenshot}}" />
+                  {% else %}
+                  <p>No image available!</p>
+                        {% endif %}
+                  </div>
+    </div>
+
+            <h2>{{domain_dict.url}}</h2><a href="{{domain_dict.mirror}}">mirror link</a>
               </div>
       <form id="analysis-form" class="analysis-form" enctype="multipart/forfm-data" action="{{dom_id}}" method="post">
      <label for="informer">Informer:</label>
@@ -138,6 +152,8 @@
     <input name="sec" type="text" value="{{domain_dict.sec}}">
     <label for="org">Organisation:</label>
     <input name="org" type="text" value="{{domain_dict.org}}">
+  <label for="abuse">Abuse Email:</label>
+    <input name="abuse" type="text" value="{{domain_dict.abuse}}">
     <br><br>
     <a href="/discard/deface/{{domid}}"><input id="discard" class="btn btn-danger" style="float: left; width: 20% !important; color: white;" value="Discard"></a>
   <input class="btn btn-primary" style="margin-left: 80%; width: 20% !important; color: white;" type="submit" value="Submit">

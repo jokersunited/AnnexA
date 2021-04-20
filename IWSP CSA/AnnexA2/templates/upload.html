@@ -15,7 +15,7 @@
 
           <div class="proceeddiv">
 <!--    <a href="/" class="proceedbtn btn-secondary btn-sm" style="float:left;margin-left: 11%;">Re-upload CSV</a>-->
-      <a href="/analyze/1" class="proceedbtn btn-secondary btn-sm" style="margin-right:0px;">Proceed to Analyze</a>
+      <a href="/analyze/phish/1" class="proceedbtn btn-secondary btn-sm" style="margin-right:0px;">Proceed to Analyze</a>
 </div>
 
     <!-- Begin file upload area -->
@@ -26,10 +26,12 @@
 <!--          <label for="captcha">Captcha:</label>-->
 <!--          <input type="text" id="captcha" name="captcha" style="width:25%" autocomplete="off"><br><br>-->
 
+
         <label for="captcha">PHPSESSION:</label>
-          <input type="text" id="php" name="php" style="width:25%" autocomplete="off"><br><br>
+          <input type="text" id="php" name="php" autocomplete="off">
             <label for="captcha">ZHE:</label>
-          <input type="text" id="zhe" name="zhe" style="width:25%" autocomplete="off"><br><br>
+          <input type="text" id="zhe" name="zhe" autocomplete="off">
+                    <h3 class="fs-subtitle">Leave these 2 fields empty if there are no defacement links for today</h3><br><br>
 
           <input type="submit" form="csvupload" value="Submit" class="next action-button" />
         </form>
@@ -43,7 +45,7 @@
       <div id="loadspinner"></div>
       <p id="loadtext"></p>
         <div class="progress">
-              <div class="progress-bar progress-bar-striped active" role="progressbar"
+              <div class="progress-bar progress-bar-striped active bg-info" role="progressbar"
               aria-valuenow="10" aria-valuemin="10" aria-valuemax="100" style="width:10%">
                 0%
               </div>

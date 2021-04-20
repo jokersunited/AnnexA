@@ -1,6 +1,5 @@
 from random import randint
 from datetime import datetime
-import time
 import pandas as pd
 
 from urllib.parse import urlparse
@@ -63,7 +62,7 @@ def generate_csv(dom_dict, zoneh):
     phish_df.to_csv("logfile.csv", mode='a', index=False, header=False)
 
     #Defacement domains generation
-    column_names = ["Date", "Notifier", "Domain", "OS", "IndustrySector", "Organisation", "Mirror", "Platform"]
+    column_names = ["CaseID", "Date", "Notifier", "Domain", "OS", "IndustrySector", "Organisation", "Mirror", "Platform", "AbuseEmail"]
     deface_df = pd.DataFrame(columns=column_names)
 
     deface_processed_list = [dom for dom in zoneh if (dom.processed and not dom.discard)]

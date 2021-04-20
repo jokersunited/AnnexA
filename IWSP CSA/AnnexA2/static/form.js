@@ -13,7 +13,17 @@ $(document).ready(function() {
 
     var socket = io.connect();
     socket.on("message", data => {
-    $("#loadtext").text(data.text);
+    console.log(data)
+    if (data.deface){
+        $('.progress-bar').removeClass("bg-info")
+        $("#loadtext").text(data.deface);
+
+    }
+    else{
+        $('.progress-bar').addClass("bg-info")
+        $("#loadtext").text(data.text);
+    }
+
     if (data.prog){
         $('.progress-bar').text(data.prog + "%")
         if (data.prog > 10){

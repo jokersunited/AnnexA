@@ -3,10 +3,7 @@ import re
 import whois, tldextract
 import socket
 import json
-import pickle
 import pandas as pd
-
-from datetime import datetime
 
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
@@ -15,8 +12,6 @@ from bs4 import BeautifulSoup
 
 from ocspchecker import ocspchecker
 from urllib.parse import urlparse
-
-import sklearn
 
 def get_status(logs):
     """
@@ -527,26 +522,3 @@ class LiveUrl(Url):
     def get_uniqlocal(self):
         uniq_loc = list(dict.fromkeys(self.link_dict['loc']))
         return len(uniq_loc) / len(self.link_dict['loc'])
-
-
-# new_phish = Url("https://changewill.setamazonup.xyz/signim/", 1)
-# new_phish = LiveUrl("https://centralcrconsulta.com/", 1)
-# new_benign = LiveUrl("https://services.runescape.com-vzla.ru/m=forum/forums.ws634,826,296,28381439,1136", 0)
-# new_benign = LiveUrl("https://acc-recover-police.langsung-barbar.xyz/", 0)
-# new_benign = LiveUrl("https://www.linechecks.info/", 0)
-# new_benign = LiveUrl("https://www.puffsandpeaks.com", 0)
-# new_benign.print_cmdreport()
-# new_benign = LiveUrl("https://revoked.badssl.com/", 0)
-# print(new_phish.get_dates(key='creation'))
-# print(new_phish.get_dates(key='expiration'))
-# print("\n")
-# print(new_benign.get_dates(key='creation'))
-# print(new_benign.get_dates(key='expiration'))
-# print(new_benign.get_val())
-# print(new_phish.get_val())
-# print(new_phish.get_lang())
-# print(new_phish.get_lang())
-# print(new_phish.get_lang())
-# print(new_benign.get_cert())
-# print(new_phish.get_links_uniqdom())
-# new_phish.get_links()

@@ -82,6 +82,3 @@ def get_cnnprediction(url):
     """
     char_X = tf.constant([get_encoding_proto(url.url_str, 200)])
     return float(model_char(char_X)[0][1])*100
-
-#
-# print(get_cnnprediction(Url("https://google.com")))
