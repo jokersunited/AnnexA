@@ -21,8 +21,20 @@
 
     <!-- Begin file upload area -->
           <div class="pagecontainer">
-        <a href="/send_file/{{timestamp}}" class="btn btn-primary" style="margin:15px;">Download Zip File</a><br>
+              <h2>Download Zip File</h2>
+        <a href="/send_file/{{timestamp}}" class="btn btn-primary" style="margin:15px;">Download</a><br>
 
+      </div>
+        <div class="pagecontainer">
+            <form action="/send_mail" method="post">
+            <h2>Send Email</h2>
+            <label for="subject">Subject:</label>
+            <input type="subject" id="subject" name="subject" value="Annex A report for {{today}}">
+
+            <label for="emailbody">Body:</label>
+            <textarea id="emailbody" name="emailbody" rows="6" cols="50"></textarea>
+        <button class="btn btn-primary" style="margin:15px;" value="Submit">Send</a><br>
+</form>
       </div>
   </div>
   <!-- End file upload area -->

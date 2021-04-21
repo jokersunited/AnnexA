@@ -2,6 +2,7 @@ from urlclass import Url, LiveUrl
 from model import get_cnnprediction, get_rfprediction
 from utils import *
 from zoneh import Zoneh
+from annexemail import send_email
 
 from zipfile import ZipFile
 
@@ -35,6 +36,7 @@ def reset_instance():
     cnc_df = None
     domain_dict = {}
     zoneh = None
+    consolidate = None
 
 reset_instance()
 
@@ -316,10 +318,11 @@ def recurl(domid):
 @app.route('/consolidate')
 @uploaded_file
 def process():
-    global domain_dict, zoneh
+    global domain_dict, zoneh, consolidate
     generate_csv(domain_dict, zoneh)
+    consolidate = True
     # reset_instance()
-    return render_template('consolidate.html', nav_list=nav_list, nav_index=2, timestamp=int(time.time()), zoneh=zoneh)
+    return render_template('consolidate.html', nav_list=nav_list, nav_index=2, timestamp=int(time.time()), zoneh=zoneh, today=datetime.today().strftime('%Y-%m-%d'))
 
 @app.route('/send_file/<uuid>')
 @uploaded_file
@@ -332,6 +335,19 @@ def download(uuid):
                          mimetype='application/zip',
                          attachment_filename='output-' + uuid +".zip",
                          as_attachment=True)
+
+@app.route('/send_mail', methods=['POST'])
+@uploaded_file
+def send_mail():
+    try:
+        body = request.form['emailbody']
+        subject = request.form['subject']
+        send_email(body, subject)
+        flash("Email successfully sent!", 'success')
+        return redirect(url_for("process"))
+    except Exception as e:
+        flash ("Error occured: " + str(e))
+        return redirect(url_for("process"))
 
 @socketio.on('connect')
 def sock_conn():
