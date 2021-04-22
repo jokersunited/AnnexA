@@ -85,6 +85,9 @@ def get_zoneh(cookie):
     time.sleep(0.5)
     return output_list
 
+def livethread(value, url):
+    pass
+
 def get_unprocessed(dom_dict):
     return [[index+1, dom] for index, dom in enumerate(dom_dict) if not dom[1].processed]
 
@@ -322,7 +325,7 @@ def process():
     generate_csv(domain_dict, zoneh)
     consolidate = True
     # reset_instance()
-    return render_template('consolidate.html', nav_list=nav_list, nav_index=2, timestamp=int(time.time()), zoneh=zoneh, today=datetime.today().strftime('%Y-%m-%d'))
+    return render_template('consolidate.html', nav_list=nav_list, nav_index=3, timestamp=int(time.time()), zoneh=zoneh, today=datetime.today().strftime('%Y-%m-%d'))
 
 @app.route('/send_file/<uuid>')
 @uploaded_file

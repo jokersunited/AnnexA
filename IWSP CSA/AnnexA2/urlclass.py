@@ -8,6 +8,7 @@ import pandas as pd
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.utils import ChromeType
 from bs4 import BeautifulSoup
 
 from ocspchecker import ocspchecker
@@ -63,7 +64,7 @@ capabilities = options.to_capabilities()
 capabilities['goog:loggingPrefs'] = {'performance': 'ALL'}
 
 # Start a selenium service so can call it and we don't need to create an instance for every URL
-service = webdriver.chrome.service.Service(ChromeDriverManager().install())
+service = webdriver.chrome.service.Service(ChromeDriverManager(chrome_type=ChromeType.GOOGLE).install())
 service.start()
 
 
@@ -504,11 +505,14 @@ class LiveUrl(Url):
         for link in links:
             link = link.get('href')
             self.link_count += 1
-            if link is None or len(link) == 0 or link[0] == "#" or link[0] == "?" or "javascript:" in link:
+            if link is not None and len(link) == 0:
+                link_dict['loc'].append(link)
+            elif link is None or len(link) == 0 or link[0] == "#" or link[0] == "?" or "javascript:" in link:
+                if link is not None and "javascript:" in link:
+                    link = "".join(link.split(":")[1:]).replace(" ", "")
                 link_dict['static'].append(link)
-            elif 'mailto:' in link:
-                mail_dom = link.split("@")[1]
-                link_dict['mail'].append(mail_dom)
+            elif "mailto:" in link:
+                link_dict['mail'].append(link)
             elif link[0] == "/" or tldextract.extract(
                     link).registered_domain == self.domaininfo.registered_domain or "://" not in link:
                 link_dict['loc'].append(link)
@@ -530,5 +534,15 @@ class LiveUrl(Url):
         self.uniq_dom = uniq_dom
 
     def get_uniqlocal(self):
-        uniq_loc = list(dict.fromkeys(self.link_dict['loc']))
-        return len(uniq_loc) / len(self.link_dict['loc'])
+        print(self.link_dict['loc'])
+        print(self.link_dict['static'])
+        if len(self.link_dict['loc']) != 0:
+            uniq_loc = list(dict.fromkeys(self.link_dict['loc']))
+            static = len(list(dict.fromkeys(self.link_dict['static'])))
+            return (len(uniq_loc)+static-1) / (len(self.link_dict['loc'])+len(self.link_dict['static']))
+        else:
+            try:
+                static = len(list(dict.fromkeys(self.link_dict['static'])))
+                return (static-1)/len(self.link_dict['static'])
+            except ZeroDivisionError:
+                return 0
