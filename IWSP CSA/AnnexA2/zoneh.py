@@ -4,6 +4,8 @@ from random import randint
 import bs4
 from urllib.parse import urlparse
 
+from threading import Thread, Lock
+
 from urlclass import LiveUrl
 from datetime import datetime
 
@@ -102,6 +104,13 @@ class Zoneh:
             print(e)
             return False
 
+lock = Lock()
+def zonehthread(output_list, entry, cookie):
+    zone_h_entry = Zoneh(entry.find_all("td")[-1].find('a').get('href'), cookie)
+    lock.acquire()
+    output_list.append(zone_h_entry)
+    lock.release()
+
 #Function to get zoneh content for today using the cookies sent by the user
 def get_zoneh(cookie):
     #Post request parameters to send to zoneh
@@ -127,14 +136,22 @@ def get_zoneh(cookie):
 
     #
     final_resp = requests.post("http://zone-h.org/archive", headers=headers, data=data)
+    print(final_resp.text)
     if b'name="archivecaptcha"' in final_resp.content:
         return False
     elif b'If you often get this captcha when gathering data' in final_resp.content:
         return False
     zoneh_soup = bs4.BeautifulSoup(final_resp.content, features='lxml')
 
+    thread_list = []
     #For each entry, extract mirror link and create zoneh object saved into a list
     for entry in zoneh_soup.find_all("tr")[1:-2]:
-        output_list.append(Zoneh(entry.find_all("td")[-1].find('a').get('href'), cookie))
+        t1 = Thread(target=zonehthread, args=(output_list, entry, cookie))
+        thread_list.append(t1)
+        t1.start()
+        # output_list.append(Zoneh(entry.find_all("td")[-1].find('a').get('href'), cookie))
+
+    for t in thread_list:
+        t.join()
 
     return output_list

@@ -114,6 +114,7 @@ def livethread(index, value, down_list):
     send_log({'text': 'Processing Phishing - ' + str(value.domain),
               'prog': int(phish_count / phish_len * 100)})
 
+
 def get_unprocessed(dom_dict):
     return [[index+1, dom] for index, dom in enumerate(dom_dict) if not dom[1].processed]
 
