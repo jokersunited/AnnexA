@@ -6,6 +6,8 @@ from annexemail import send_email
 
 from zipfile import ZipFile
 
+from threading import Thread, Lock
+
 import pandas as pd
 import numpy as np
 
@@ -85,8 +87,32 @@ def get_zoneh(cookie):
     time.sleep(0.5)
     return output_list
 
-def livethread(value, url):
-    pass
+# Threading for LIVE url processing
+lock = Lock()
+phish_len = 0
+phish_count = 0
+def livethread(index, value, down_list):
+    global phish_len, phish_count
+
+    value.url.sort(key=lambda x: len(x.url_str))
+    for url in value.url:
+        value.rf += get_rfprediction(url)
+        value.cnn += get_cnnprediction(url)
+    value.avg_res('rf')
+    value.avg_res('cnn')
+    # send_log({'text': 'Processing Phishing - Analyzing ' + str(value.url[0].url_str)})
+    value.setlive(LiveUrl(value.url[0].url_str))
+
+    if not (value.live.access is False or value.live.dns is False):
+        value.abuse = value.live.first_email()
+        value.spoof = value.live.get_spoofed()
+    else:
+        lock.acquire()
+        down_list.append(value.domain)
+        lock.release()
+    phish_count += 1
+    send_log({'text': 'Processing Phishing - ' + str(value.domain),
+              'prog': int(phish_count / phish_len * 100)})
 
 def get_unprocessed(dom_dict):
     return [[index+1, dom] for index, dom in enumerate(dom_dict) if not dom[1].processed]
@@ -146,22 +172,32 @@ def clean_csv(csv_df):
 
     down_list = []
     dup_list = []
-    for index, value in enumerate(domain_dict.values()):
-        send_log({'text': 'Processing Phishing - ' + str(value.domain), 'prog': int((index+1)/len(domain_dict.values())*100)})
-        value.url.sort(key=lambda x: len(x.url_str))
-        for url in value.url:
-            value.rf += get_rfprediction(url)
-            value.cnn += get_cnnprediction(url)
-        value.avg_res('rf')
-        value.avg_res('cnn')
-        send_log({'text': 'Processing Phishing - Analyzing ' + str(value.url[0].url_str)})
-        value.setlive(LiveUrl(value.url[0].url_str))
+    thread_list = []
+    global phish_len
+    phish_len = len(domain_dict.values())
 
-        if not (value.live.access is False or value.live.dns is False):
-            value.abuse = value.live.first_email()
-            value.spoof = value.live.get_spoofed()
-        else:
-            down_list.append(value.domain)
+    for index, value in enumerate(domain_dict.values()):
+        t1 = Thread(target=livethread, args=(index, value, down_list))
+        thread_list.append(t1)
+        t1.start()
+        # send_log({'text': 'Processing Phishing - ' + str(value.domain), 'prog': int((index+1)/len(domain_dict.values())*100)})
+        # value.url.sort(key=lambda x: len(x.url_str))
+        # for url in value.url:
+        #     value.rf += get_rfprediction(url)
+        #     value.cnn += get_cnnprediction(url)
+        # value.avg_res('rf')
+        # value.avg_res('cnn')
+        # send_log({'text': 'Processing Phishing - Analyzing ' + str(value.url[0].url_str)})
+        # value.setlive(LiveUrl(value.url[0].url_str))
+        #
+        # if not (value.live.access is False or value.live.dns is False):
+        #     value.abuse = value.live.first_email()
+        #     value.spoof = value.live.get_spoofed()
+        # else:
+        #     down_list.append(value.domain)
+
+    for t in thread_list:
+        t.join()
 
     flash(str(len(down_list)) + " domain(s) were automatically removed as they were down.", 'success')
     for down in down_list:
