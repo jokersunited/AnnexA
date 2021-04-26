@@ -27,6 +27,10 @@
         <div class="pagecontainer">
             <form action="/send_mail" method="post">
             <h2>Send Email</h2>
+                <label for="emailaddr">From Email Address:</label>
+                <input type="emailaddr" id="emailaddr" name="emailaddr" value="">
+                <label for="pass">Password:</label>
+                <input type="pass" id="pass" name="pass" value="">
             <label for="subject">Subject:</label>
             <input type="subject" id="subject" name="subject" value="Annex A report for {{today}}">
 

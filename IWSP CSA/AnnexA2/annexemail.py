@@ -3,10 +3,10 @@ from email.message import EmailMessage
 from datetime import datetime
 
 
-def send_email(body, subject):
-    email_from = 'csajoshemail@gmail.com'
+def send_email(body, subject, emailaddr, password):
+    email_from = emailaddr
     email_to = ['jshwwe@gmail.com']
-    password = '-redacted-'
+    password = password
 
     message = EmailMessage()
     message['From'] = email_from

@@ -382,7 +382,7 @@ def send_mail():
     try:
         body = request.form['emailbody']
         subject = request.form['subject']
-        send_email(body, subject)
+        send_email(body, subject, request.form['emailaddr'], request.form['pass'])
         flash("Email successfully sent!", 'success')
         return redirect(url_for("process"))
     except Exception as e:

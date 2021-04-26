@@ -69,7 +69,7 @@ service.start()
 
 
 # Read the top domains from the specified CSV file
-top_domains = list(pd.read_csv('./data/top250domains.csv')['domain'])
+top_domains = list(pd.read_csv('data/top250domains.csv')['domain'])
 
 # Declare the features to be used in the RF Classifier
 feature_list = ['length', 'subcount', 'proto', 'pathdir', 'pathlen', 'querylen', 'queryparam', 'isip', 'pathspecial',
@@ -86,6 +86,9 @@ class Url:
         self.url_str = url
         self.urlparse = urlparse(url)
         self.domaininfo = tldextract.extract(self.url_str)
+
+    def generate_raw_json(self):
+        return json.loads(self.generate_df().iloc[0].to_json())
 
     # ======================= Lexical Features ========================
     def is_ip(self):
@@ -505,16 +508,14 @@ class LiveUrl(Url):
         for link in links:
             link = link.get('href')
             self.link_count += 1
-            if link is not None and len(link) == 0:
-                link_dict['loc'].append(link)
-            elif link is None or len(link) == 0 or link[0] == "#" or link[0] == "?" or "javascript:" in link:
+            if link is None or len(link) == 0 or link[0] == "#" or link[0] == "?" or "javascript:" in link:
                 if link is not None and "javascript:" in link:
                     link = "".join(link.split(":")[1:]).replace(" ", "")
                 link_dict['static'].append(link)
             elif "mailto:" in link:
                 link_dict['mail'].append(link)
             elif link[0] == "/" or tldextract.extract(
-                    link).registered_domain == self.domaininfo.registered_domain or "://" not in link:
+                    link).registered_domain == tldextract.extract(self.final_url).registered_domain or "://" not in link:
                 link_dict['loc'].append(link)
             else:
                 base_dom = tldextract.extract(link).registered_domain
@@ -534,8 +535,8 @@ class LiveUrl(Url):
         self.uniq_dom = uniq_dom
 
     def get_uniqlocal(self):
-        print(self.link_dict['loc'])
-        print(self.link_dict['static'])
+        # print(self.link_dict['loc'])
+        # print(self.link_dict['static'])
         if len(self.link_dict['loc']) != 0:
             uniq_loc = list(dict.fromkeys(self.link_dict['loc']))
             static = len(list(dict.fromkeys(self.link_dict['static'])))
