@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
         curl \
         libfreetype6-dev \
-        libpng12-dev \
+        libpng-dev \
         libzmq3-dev \
         pkg-config \
         python \
