@@ -135,7 +135,7 @@ def send_log(msg):
 
 def clean_csv(csv_df):
     global phish_df, cnc_df, domain_dict
-    log_file = pd.read_csv("/app/logs/logfile.csv")
+    log_file = pd.read_csv("logs/logfile.csv")
 
     domain_dict = {}
 

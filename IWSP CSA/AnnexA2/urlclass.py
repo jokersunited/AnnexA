@@ -69,7 +69,7 @@ service.start()
 
 
 # Read the top domains from the specified CSV file
-top_domains = list(pd.read_csv('/app/data/top250domains.csv')['domain'])
+top_domains = list(pd.read_csv('/data/top250domains.csv')['domain'])
 
 # Declare the features to be used in the RF Classifier
 feature_list = ['length', 'subcount', 'proto', 'pathdir', 'pathlen', 'querylen', 'queryparam', 'isip', 'pathspecial',
