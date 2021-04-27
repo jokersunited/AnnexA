@@ -1,0 +1,13 @@
+CaseID,Date,Abuse Email,IPAddress,Domain,Target,URL,Status
+SingCERT_20210331-A583559,737880,compliance_abuse@webnic.cc,43.227.231.96,edirect-tech.com,Unknown,http://edirect-tech.com,Active
+SingCERT_20210331-A583559,737880,compliance_abuse@webnic.cc,43.227.231.96,edirect-tech.com,Unknown,http://edirect-tech.com/car/index.php,Active
+SingCERT_20210405-A336343,737885,aruna.s.srinivasan@gmail.com,43.227.231.96,3agtechnologies.com.sg,microsoft.com,http://3agtechnologies.com.sg,Active
+SingCERT_20210405-A426217,737885,domainabuse@tucows.com,43.245.61.213,www.43-245-61-213.cprapid.com,dhl.com,https://www.43-245-61-213.cprapid.com/anstehende-0437662,Active
+SingCERT_20210405-A439023,737885,lp89ak6jduuq7vh@proxy.dreamhost.com,43.227.231.96,www.puffsandpeaks.com,instagram.com,https://www.puffsandpeaks.com,Active
+SingCERT_20210405-A498444,737885,None,118.107.56.133,118.107.56.133,Unknown,http://118.107.56.133/css/all_common_proc.css,Active
+SingCERT_20210409-A788388,737889,compliance_abuse@webnic.cc,43.227.231.96,edirect-tech.com,Unknown,http://edirect-tech.com,Active
+SingCERT_20210409-A788388,737889,compliance_abuse@webnic.cc,43.227.231.96,edirect-tech.com,Unknown,http://edirect-tech.com/car/index.php,Active
+SingCERT_20210415-A747895,737895,aruna.s.srinivasan@gmail.com,43.227.231.96,3agtechnologies.com.sg,microsoft.com,http://3agtechnologies.com.sg,Active
+SingCERT_20210415-A791426,737895,compliance_abuse@webnic.cc,43.227.231.96,edirect-tech.com,Unknown,http://edirect-tech.com,Active
+SingCERT_20210415-A791426,737895,compliance_abuse@webnic.cc,43.227.231.96,edirect-tech.com,Unknown,http://edirect-tech.com/car/index.php,Active
+SingCERT_20210415-A627210,737895,domainabuse@tucows.com,43.245.61.213,www.43-245-61-213.cprapid.com,dhl.com,https://www.43-245-61-213.cprapid.com/anstehende-0437662,Active
