@@ -45,7 +45,7 @@ def get_str_ordinal(datestr):
 
 def generate_csv(dom_dict, zoneh):
     #Phishing domains generation
-    logfile = pd.read_csv("logfile.csv")
+    logfile = pd.read_csv("./logs/logfile.csv")
     column_names = ["CaseID", "Date", "Abuse Email", "IPAddress", "Domain", "Target", "URL", "Status"]
     phish_df = pd.DataFrame(columns=column_names)
 
@@ -59,7 +59,7 @@ def generate_csv(dom_dict, zoneh):
         #     continue
 
     phish_df.to_csv("phish.csv", index=False)
-    phish_df.to_csv("logfile.csv", mode='a', index=False, header=False)
+    phish_df.to_csv("./logs/logfile.csv", mode='a', index=False, header=False)
 
     #Defacement domains generation
     column_names = ["CaseID", "Date", "Notifier", "Domain", "OS", "IndustrySector", "Organisation", "Mirror", "Platform", "AbuseEmail"]
@@ -96,6 +96,7 @@ class Domain:
         self.url = [url]
         self.cnn = 0
         self.rf = 0
+        self.svm = 0
         self.live = None
 
         self.processed = False
@@ -127,7 +128,10 @@ class Domain:
         return out_list
 
     def check_benign(self):
-        if self.cnn > 50:
+        if float(self.svm) < 50 and self.live.cert is not None:
+            if self.live.ocsp == "GOOD":
+                return True
+        elif self.cnn > 50:
             return False
         elif self.rf > 50:
             return False

@@ -1,7 +1,7 @@
 <img class='screenshot' src="{{domain_dict[1].live.screenshot}}" />
             <h2>{{domain_dict[0]}}</h2>
             <h3 class="fs-subtitle">
-                <b>{{ domain_dict[1].live.url_str }}</b> (Current page)
+                <a href="{{domain_dict[1].live.url_str}}">{{ domain_dict[1].live.url_str }}</a> (Current page)
             </h3>
             <h3 class="fs-subtitle">
                 {% for ip in domain_dict[1].ip %}
@@ -117,7 +117,8 @@
                           <td class="row-head">CNN Model Prediction</td>
                           <td>{{domain_dict[1].cnn}}%</td>
                       </tr>
-                  </tbody>
+
+
         </table>
     </div>
 </div>
@@ -127,29 +128,38 @@
         <table class="results-table table table-bordered table-striped">
             <thead>
                 <tr>
-                    <td colspan="3"><h4>Page Links (Total: <b>{{domain_dict[1].live.link_count}}</b>)</h4></td>
+                    <td colspan="2"><h4>AI Prediction on Page Links (Total Links: <b>{{domain_dict[1].live.link_count}}</b>)</h4></td>
 <!--            print("ext %:" + str(len(self.link_dict['ext']) / self.link_count * 100))-->
 <!--            print("static %:" + str(len(self.link_dict['static']) / self.link_count * 100))-->
                 </tr>
             </thead>
             {% if domain_dict[1].live.link_count > 0 %}
             <tbody>
-                <tr>
-                    <td>Local ({{domain_dict[1].live.link_dict['loc']|length}})</td>
-                    <td>External ({{domain_dict[1].live.link_dict['ext']|length}})</td>
-                    <td>Static ({{domain_dict[1].live.link_dict['static']|length}})</td>
-                </tr>
-                <tr>
-                    <td>
-                        {{ domain_dict[1].live.get_linkperc('loc') }}
-                    </td>
-                    <td>
-                        {{ domain_dict[1].live.get_linkperc('ext') }}
-                    </td>
-                    <td>
-                        {{ domain_dict[1].live.get_linkperc('static') }}
-                    </td>
-                </tr>
+                                          {% if domain_dict[1].svm | int <= 50 %}
+                      <tr>
+        {% else %}
+                      <tr class="badrow">
+            {% endif %}
+                          <td class="row-head">SVM Model Prediction</td>
+                          <td>{{ domain_dict[1].svm | int }}%</td>
+                      </tr>
+                  </tbody>
+<!--                <tr>-->
+<!--                    <td>Local ({{domain_dict[1].live.link_dict['loc']|length}})</td>-->
+<!--                    <td>External ({{domain_dict[1].live.link_dict['ext']|length}})</td>-->
+<!--                    <td>Static ({{domain_dict[1].live.link_dict['static']|length}})</td>-->
+<!--                </tr>-->
+<!--                <tr>-->
+<!--                    <td>-->
+<!--                        {{ domain_dict[1].live.get_linkperc('loc') }}-->
+<!--                    </td>-->
+<!--                    <td>-->
+<!--                        {{ domain_dict[1].live.get_linkperc('ext') }}-->
+<!--                    </td>-->
+<!--                    <td>-->
+<!--                        {{ domain_dict[1].live.get_linkperc('static') }}-->
+<!--                    </td>-->
+<!--                </tr>-->
             </tbody>
             {% endif %}
         </table>

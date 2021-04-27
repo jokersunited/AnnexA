@@ -1,6 +1,7 @@
 import tensorflow as tf
 import keras
 import pickle
+import pandas as pd
 #
 # from urlclass import Url
 
@@ -17,6 +18,11 @@ with open('./data/rfmodel.pickle', 'rb') as f:
 
 # Load and initialize the CNN model
 model_char = keras.models.load_model('./data/modelchar')
+
+# Load and initialise the LiveSVM model
+with open('./data/livesvm.pickle', 'rb') as f:
+    livemodel = pickle.load(f)
+    feature_list = ["link", "loc", "ext", "static", "uniq"]
 
 # Generate a dictionary with character mapping
 def gen_char_dict():
@@ -82,3 +88,24 @@ def get_cnnprediction(url):
     """
     char_X = tf.constant([get_encoding_proto(url.url_str, 200)])
     return float(model_char(char_X)[0][1])*100
+
+def get_livelinkprediction(url_phish):
+    """
+    Gets prediction from the CNN Model
+    :param url: LiveUrl object
+    :return: List with index 0 as the prediction and index 1 as the probability
+    """
+    if url_phish.dns is True and url_phish.access is True and url_phish.link_count > 0:
+        data = {"link": url_phish.link_count, "loc": float(url_phish.get_linkperc("loc").split("%")[0])/100,
+         "ext": float(url_phish.get_linkperc("ext").split("%")[0])/100, "static": float(url_phish.get_linkperc("static").split("%")[0])/100,
+         "uniq": url_phish.get_uniqlocal()}
+    elif url_phish.link_count == 0:
+        data = {"link": 0, "loc": 0, "ext": 0, "static": 0, "uniq": 0}
+    else:
+        return
+    url_frame = pd.DataFrame(data, index=[0])
+    url_frame[feature_list] = livemodel['scaler'].transform(url_frame[feature_list])
+    # result = int(livemodel['model'].predict([url_frame.iloc[0]])[0])
+    proba = "{:.2f}".format(float(livemodel['model'].predict_proba([url_frame.iloc[0]])[0][1])*100)
+
+    return proba

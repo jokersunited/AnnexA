@@ -1,5 +1,5 @@
 from urlclass import Url, LiveUrl
-from model import get_cnnprediction, get_rfprediction
+from model import get_cnnprediction, get_rfprediction, get_livelinkprediction
 from utils import *
 from zoneh import Zoneh
 from annexemail import send_email
@@ -98,12 +98,15 @@ def livethread(index, value, down_list):
     for url in value.url:
         value.rf += get_rfprediction(url)
         value.cnn += get_cnnprediction(url)
+
     value.avg_res('rf')
     value.avg_res('cnn')
     # send_log({'text': 'Processing Phishing - Analyzing ' + str(value.url[0].url_str)})
     value.setlive(LiveUrl(value.url[0].url_str))
 
+
     if not (value.live.access is False or value.live.dns is False):
+        value.svm = get_livelinkprediction(value.live)
         value.abuse = value.live.first_email()
         value.spoof = value.live.get_spoofed()
     else:
@@ -132,7 +135,7 @@ def send_log(msg):
 
 def clean_csv(csv_df):
     global phish_df, cnc_df, domain_dict
-    log_file = pd.read_csv("logfile.csv")
+    log_file = pd.read_csv("./logs/logfile.csv")
 
     domain_dict = {}
 
@@ -320,6 +323,8 @@ def analyze(dom_type, domid):
                     return redirect(url_for("analyze", domid=domid, dom_type="deface"))
 
     except (IndexError, TypeError, ValueError) as e:
+        print(e)
+        raise e
         flash("Invalid domain ID specified", 'error')
         return redirect(url_for("upload"))
 
