@@ -29,9 +29,9 @@ RUN pip --no-cache-dir install --upgrade ipython && \
     python -m ipykernel.kernelspec
 
 
-# Install TensorFlow CPU version from central repo
-RUN pip --no-cache-dir install \
-    https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-1.0.1-cp27-none-linux_x86_64.whl
+## Install TensorFlow CPU version from central repo
+#RUN pip --no-cache-dir install \
+#    https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-1.0.1-cp27-none-linux_x86_64.whl
 
 ENV LD_LIBRARY_PATH /usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH
 
