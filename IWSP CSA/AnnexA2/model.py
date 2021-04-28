@@ -13,14 +13,14 @@ except:
     pass
 
 # Load and initialise the RandomForest model
-with open('data/rfmodel.pickle', 'rb') as f:
+with open('/app/data/rfmodel.pickle', 'rb') as f:
     model = pickle.load(f)
 
 # Load and initialize the CNN model
-model_char = keras.models.load_model('data/modelchar')
+model_char = keras.models.load_model('/app/data/modelchar')
 
 # Load and initialise the LiveSVM model
-with open('data/livesvm.pickle', 'rb') as f:
+with open('/app/data/livesvm.pickle', 'rb') as f:
     livemodel = pickle.load(f)
     feature_list = ["link", "loc", "ext", "static", "uniq"]
 
